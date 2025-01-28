@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+</head>
+
+<body>
+
+    <h1>Classroom List</h1>
+    <ul>
+        {% for classroom in classrooms %}
+            <li>{{ classroom.className }} - Start Date: {{ classroom.startDate }} - End Date: {{ classroom.endDate }}</li>
+        {% endfor %}
+    </ul>
+
+    <h1>Create Classroom</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Create Classroom</button>
+    </form>
+</body>
+
+</html>
