@@ -3,6 +3,7 @@ import string, random
 
 # Create your models here.
 class Classroom(models.Model):
+    classroomID = models.AutoField(primary_key=True)
     className = models.CharField(max_length=100)
     startDate = models.DateField()
     endDate = models.DateField()

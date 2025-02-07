@@ -11,11 +11,11 @@ def index(request):
         createClassroomForm = ClassroomForm(request.POST)
         if createClassroomForm.is_valid():
             newClassroom = createClassroomForm.save()  
-            return redirect('classroom', id=newClassroom.id)
+            return redirect('classroom', id=newClassroom.classroomID)
 
     return render(request, 'index.html', {'form': createClassroomForm})
 
 
 def classroom(request, id):
-    classroom = get_object_or_404(Classroom, id=id)
+    classroom = get_object_or_404(Classroom, classroomID=id)
     return render(request, 'classroom.html', {'classroom': classroom})
