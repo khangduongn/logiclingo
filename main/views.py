@@ -1,18 +1,21 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from .forms import ClassroomForm
 from .models import Classroom
 
 def index(request):
-    classrooms = Classroom.objects.all()
+
+    createClassroomForm = ClassroomForm()
 
     if request.method == 'POST':
         createClassroomForm = ClassroomForm(request.POST)
         if createClassroomForm.is_valid():
-            createClassroomForm.save()  
-            createClassroomForm = ClassroomForm()
+            newClassroom = createClassroomForm.save()  
+            return redirect('classroom', id=newClassroom.id)
 
-    else:
-        createClassroomForm = ClassroomForm()
+    return render(request, 'index.html', {'form': createClassroomForm})
 
-    return render(request, 'index.html', {'form': createClassroomForm, 'classrooms': classrooms})
+
+def classroom(request, id):
+    classroom = get_object_or_404(Classroom, id=id)
+    return render(request, 'classroom.html', {'classroom': classroom})

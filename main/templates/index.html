@@ -1,27 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
+{% block title %}Create Classroom{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Homepage</title>
-</head>
+{% block content %}
 
-<body>
-
-    <h1>Classroom List</h1>
-    <ul>
-        {% for classroom in classrooms %}
-            <li>{{ classroom.className }} - Start Date: {{ classroom.startDate }} - End Date: {{ classroom.endDate }}</li>
-        {% endfor %}
-    </ul>
-
-    <h1>Create Classroom</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Create Classroom</button>
-    </form>
-</body>
-
-</html>
+<h1>Create Classroom</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit</button>
+</form>
+{% endblock %}

@@ -2,6 +2,9 @@ from django import forms
 from .models import Classroom
 
 class ClassroomForm(forms.ModelForm):
+
+    preexisting = forms.BooleanField(required=False, label="Default Roadmap")
+
     class Meta:
         model = Classroom
         fields = ['className', 'startDate', 'endDate']  
