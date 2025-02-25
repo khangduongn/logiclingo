@@ -7,4 +7,7 @@
 <div>Start Date: {{ classroom.startDate }}</div>
 <div>End Date: {{ classroom.endDate }}</div>
 <div>Using Default Roadmap </div>
+
+<a href="{% url 'classroom_settings' id=classroom.classroomID %}">Classroom Settings</a>
+
 {% endblock %}

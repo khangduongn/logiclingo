@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from .forms import ClassroomForm, StudentForm, InstructorForm
 from .models import Classroom, Student, Instructor, User
 from django.http import Http404
+from .controllers import ClassroomController
 
 def create_classroom(request):
 
@@ -70,3 +71,19 @@ def login(request):
 
     
     return render(request, 'login.html', {'form': loginForm})
+
+def classroom_settings(request, id):
+
+    if request.method == 'POST':
+
+        student_emails = request.POST.get('student_emails')
+        instructor_emails = request.POST.get('instructor_emails')
+
+        if student_emails:
+            ClassroomController.inviteUsers(student_emails, id, True)
+        else:
+            ClassroomController.inviteUsers(instructor_emails, id, False)
+            
+        return render(request, 'classroom_settings.html', {'message': 'Emails Sent!'})
+    
+    return render(request, 'classroom_settings.html', {'message': ''})

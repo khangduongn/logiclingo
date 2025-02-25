@@ -1,6 +1,7 @@
 from django.db import models
 import string, random
 from django.core.validators import MinLengthValidator
+from django.core.mail import send_mail
 
 # Create your models here.
 class Classroom(models.Model):
@@ -27,6 +28,25 @@ class Classroom(models.Model):
                     break
 
         super().save(*args, **kwargs)
+
+    def sendEmail(self, email: str, classroomCode: int, isStudent: bool):
+        
+        if isStudent:
+            send_mail(
+                "LogicLingo Student Join Classroom",
+                f"Join the LogicLingo classroom with the classroom code {classroomCode}",
+                "logiclingo@drexel.edu",
+                [email],
+                fail_silently=False,
+            )
+        else:
+            send_mail(
+                "LogicLingo Instructor Join Classroom",
+                f"Join the LogicLingo classroom with the classroom code {classroomCode}",
+                "logiclingo@drexel.edu",
+                [email],
+                fail_silently=False,
+            )
 
     def __str__(self):
         return self.className
