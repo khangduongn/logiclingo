@@ -8,5 +8,10 @@ urlpatterns = [
     path('create_instructor/', views.create_instructor, name='create_instructor'),
     path('student/<int:id>/', views.student, name='student'),
     path('instructor/<int:id>/', views.instructor, name='instructor'),
+<<<<<<< HEAD
+    path('login/', views.user_login, name='user_login'),
+    path('student/<int:student_id>/join-classroom/', views.join_classroom, name='join_classroom'),
+=======
+>>>>>>> origin/main
     path('classroom/<int:id>/settings', views.classroom_settings, name='classroom_settings'),
 ]

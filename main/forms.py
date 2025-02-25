@@ -43,7 +43,11 @@ class InstructorForm(UserForm):
         model = Instructor
         fields = UserForm.Meta.fields + ['department']
 
-
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=25)
     password = forms.CharField(widget=forms.PasswordInput)
+
+
+class JoinClassroomForm(forms.Form):
+    classroom_code = forms.CharField(max_length=5, label="Classroom Code", 
+                                    widget=forms.TextInput(attrs={'placeholder': 'Enter classroom code'}))
