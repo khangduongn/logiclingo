@@ -4,9 +4,9 @@
 {% block content %}
 
 <h1>Login</h1>
-<form method="post" action="{% url 'user_login' %}">
+<form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Login</button>
+    <button type="submit">Submit</button>
 </form>
 {% endblock %}
