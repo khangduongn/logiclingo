@@ -10,6 +10,8 @@ class Classroom(models.Model):
     endDate = models.DateField()
     active = models.BooleanField(default=True)
     open = models.BooleanField(default=True)
+    instructorLastName = models.CharField(max_length=100, default="Unknown")
+
     classroomCode = models.CharField(
         max_length=5,
         unique=True,        
@@ -18,7 +20,6 @@ class Classroom(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        #generate a unique random code
         if not self.classroomCode:
             while True:
                 randomCode = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
@@ -39,6 +40,8 @@ class User(models.Model):
     username = models.CharField(max_length=25, unique=True, blank=False)
     password = models.CharField(max_length=20, blank=False, validators=[MinLengthValidator(8)])
     feedback = models.CharField(max_length=200)
+    enrolled = models.BooleanField(default=False)
+    classrooms = models.ManyToManyField(Classroom, blank=True)
 
     class Meta:
         #this is abstract model
@@ -48,6 +51,7 @@ class Student(User):
     numExercisesCompleted = models.IntegerField(default=0)
     numHoursSpent = models.IntegerField(default=0)
     daysStreak = models.IntegerField(default=0)
+    classrooms = models.ManyToManyField(Classroom, related_name='students')
     streakToday = models.BooleanField(default=False)
     enrolled = models.BooleanField(default=True)
 

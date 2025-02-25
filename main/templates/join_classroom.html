@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Join Classroom{% endblock %}
+
+{% block content %}
+<h1>Join a Classroom</h1>
+<p>Enter the class code provided by your instructor</p>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Join</button>
+</form>
+
+<a href="{% url 'student' id=student.userID %}">Cancel</a>
+{% endblock %}
