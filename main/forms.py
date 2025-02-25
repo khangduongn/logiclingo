@@ -1,5 +1,6 @@
 from django import forms
-from .models import Classroom
+from .models import Classroom, User, Student, Instructor
+from django.core.validators import MinLengthValidator
 
 class ClassroomForm(forms.ModelForm):
 
@@ -20,3 +21,29 @@ class ClassroomForm(forms.ModelForm):
 
         if startDate and endDate and startDate > endDate:
             raise forms.ValidationError("Start date must be earlier than the end date.")
+
+class UserForm(forms.ModelForm):
+
+    password = forms.CharField(
+        widget=forms.PasswordInput(),
+        validators=[MinLengthValidator(8)],
+        error_messages={'min_length': 'Password must be at least 8 characters long.'}
+    )
+
+    class Meta:
+        model = User
+        fields = ['firstName', 'lastName', 'email', 'username', 'password']
+
+class StudentForm(UserForm):
+    class Meta(UserForm.Meta):
+        model = Student 
+
+class InstructorForm(UserForm):
+    class Meta(UserForm.Meta):
+        model = Instructor
+        fields = UserForm.Meta.fields + ['department']
+
+
+class LoginForm(forms.Form):
+    username = forms.CharField(max_length=25)
+    password = forms.CharField(widget=forms.PasswordInput)

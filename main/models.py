@@ -1,5 +1,6 @@
 from django.db import models
 import string, random
+from django.core.validators import MinLengthValidator
 
 # Create your models here.
 class Classroom(models.Model):
@@ -29,3 +30,28 @@ class Classroom(models.Model):
 
     def __str__(self):
         return self.className
+
+class User(models.Model):
+    userID = models.AutoField(primary_key=True)
+    firstName = models.CharField(max_length=100, blank=False)
+    lastName = models.CharField(max_length=100, blank=False)
+    email = models.EmailField(max_length=100,blank=False,unique=True)
+    username = models.CharField(max_length=25, unique=True, blank=False)
+    password = models.CharField(max_length=20, blank=False, validators=[MinLengthValidator(8)])
+    feedback = models.CharField(max_length=200)
+
+    class Meta:
+        #this is abstract model
+        abstract = True 
+
+class Student(User):
+    numExercisesCompleted = models.IntegerField(default=0)
+    numHoursSpent = models.IntegerField(default=0)
+    daysStreak = models.IntegerField(default=0)
+    streakToday = models.BooleanField(default=False)
+    enrolled = models.BooleanField(default=True)
+
+class Instructor(User):
+    department = models.CharField(max_length=200)
+    employed = models.BooleanField(default=True)
+    
