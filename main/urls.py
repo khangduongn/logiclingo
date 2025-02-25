@@ -10,5 +10,5 @@ urlpatterns = [
     path('instructor/<int:id>/', views.instructor, name='instructor'),
     path('login/', views.user_login, name='user_login'),
     path('student/<int:student_id>/join-classroom/', views.join_classroom, name='join_classroom'),
-
+    path('classroom/<int:id>/settings', views.classroom_settings, name='classroom_settings'),
 ]
