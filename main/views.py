@@ -4,7 +4,7 @@ from .forms import ClassroomForm, StudentForm, InstructorForm
 from .models import Classroom, Student, Instructor, User
 from django.http import Http404
 
-def index(request):
+def create_classroom(request):
 
     createClassroomForm = ClassroomForm()
 
@@ -14,7 +14,7 @@ def index(request):
             newClassroom = createClassroomForm.save()  
             return redirect('classroom', id=newClassroom.classroomID)
 
-    return render(request, 'index.html', {'form': createClassroomForm})
+    return render(request, 'create_classroom.html', {'form': createClassroomForm})
 
 
 def classroom(request, id):
@@ -37,7 +37,7 @@ def create_student(request):
         createStudentForm = StudentForm(request.POST)
         if createStudentForm.is_valid():
             newStudent = createStudentForm.save()
-            return redirect('profile', id=newStudent.userID)
+            return redirect('student', id=newStudent.userID)
 
     return render(request, 'create_student.html', {'form': createStudentForm})
 
@@ -49,7 +49,7 @@ def create_instructor(request):
         createInstructorForm = InstructorForm(request.POST)
         if createInstructorForm.is_valid():
             newInstructor = createInstructorForm.save()
-            return redirect('profile', id=newInstructor.userID)
+            return redirect('instructor', id=newInstructor.userID)
 
     return render(request, 'create_instructor.html', {'form': createInstructorForm})
 
