@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %} Student {{ student.userID }} {% endblock %}
+
+{% block content %} 
+
+<div> Logged in as {{ student.firstName }} {{ student.lastName }}</div>
+<div>Student Statistics</div>
+<div>Number of Exercises Completed: {{ student.numExercisesCompleted }}</div>
+<div>Number of Hours Spent: {{ student.numHoursSpent }}</div>
+<div>Number of Days Streak: {{ student.daysStreak }}</div>
+<div>Have Streak Today?: {{ student.streakToday }}</div>
+<div>Enrollment Status: {{ student.enrolled }}</div>
+
+
+{% endblock %}
+

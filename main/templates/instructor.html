@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %} Instructor {{ instructor.userID }} {% endblock %}
+
+{% block content %} 
+
+<div> Logged in as {{ instructor.firstName }} {{ instructor.lastName }}</div>
+<div>Instructor Statistics</div>
+<div>Department: {{ instructor.department }}</div>
+<div>Employment Status: {{ instructor.employed }}</div>
+
+{% endblock %}
