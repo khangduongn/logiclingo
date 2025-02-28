@@ -28,7 +28,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=25, unique=True, blank=False)
     password = models.CharField(max_length=100, blank=False, validators=[MinLengthValidator(8)])
     feedback = models.CharField(max_length=200)
-    # classrooms = models.ManyToManyField(Classroom, blank=True)
 
     #django fields (these are only here to make user authentication work properly in Django)
     is_active = models.BooleanField(default=True)
@@ -44,7 +43,6 @@ class Student(User):
     numExercisesCompleted = models.IntegerField(default=0)
     numHoursSpent = models.IntegerField(default=0)
     daysStreak = models.IntegerField(default=0)
-    # classrooms = models.ManyToManyField(Classroom, related_name='students')
     streakToday = models.BooleanField(default=False)
     enrolled = models.BooleanField(default=True)
 
@@ -52,7 +50,6 @@ class Instructor(User):
     department = models.CharField(max_length=200)
     employed = models.BooleanField(default=True)
 
-# Create your models here.
 class Classroom(models.Model):
     classroomID = models.AutoField(primary_key=True)
     className = models.CharField(max_length=100)
