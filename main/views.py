@@ -11,6 +11,10 @@ from .controllers import ClassroomController
 
 from .controllers import ClassroomController
 
+
+def index(request):
+    return render(request, 'index.html')
+
 def create_classroom(request):
     createClassroomForm = ClassroomForm()
 

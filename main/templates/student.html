@@ -16,7 +16,7 @@
             {% for classroom in student.classrooms.all %}
                 <li>
                     <a href="{% url 'classroom' id=classroom.classroomID %}">
-                        {{ classroom.className }} ({{ classroom.instructorLastName }})
+                        {{ classroom.className }} ({{ classroom.instructorName }})
                     </a>
                 </li>
             {% endfor %}
