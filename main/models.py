@@ -3,6 +3,8 @@ import string, random
 from django.core.validators import MinLengthValidator
 from django.core.mail import send_mail
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.conf import settings
+from django.urls import reverse
 
 class UserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
@@ -78,27 +80,31 @@ class Classroom(models.Model):
 
         super().save(*args, **kwargs)
 
-    def sendEmail(self, email: str, classroomCode: int, isStudent: bool):
-        
+    def sendEmail(self, email: str, classroomCode: str, isStudent: bool):
+        confirm_url = f"{settings.SITE_URL}{reverse('confirm_join_classroom')}?classroom_code={classroomCode}"
+
         if isStudent:
-            send_mail(
-                "LogicLingo Student Join Classroom",
-                f"Join the LogicLingo classroom with the classroom code {classroomCode}",
-                "logiclingo@drexel.edu",
-                [email],
-                fail_silently=False,
+            subject = "Join Your LogicLingo Classroom"
+            message = (
+                f"You've been invited to join a LogicLingo classroom.\n\n"
+                f"Join the LogicLingo classroom with the classroom code {classroomCode}\n"
+                f"Click the link below to confirm your enrollment:\n{confirm_url}"
             )
         else:
-            send_mail(
-                "LogicLingo Instructor Join Classroom",
-                f"Join the LogicLingo classroom with the classroom code {classroomCode}",
-                "logiclingo@drexel.edu",
-                [email],
-                fail_silently=False,
+            subject = "Instructor Classroom Invitation"
+            message = (
+                f"You've been invited to join a LogicLingo classroom as an instructor.\n\n"
+                f"Join the LogicLingo classroom with the classroom code {classroomCode}\n\n"
+                f"Click the link below to confirm your enrollment:\n{confirm_url}"
             )
+
+        send_mail(
+            subject,
+            message,
+            "logiclingo@drexel.edu",
+            [email],
+            fail_silently=False,
+        )
 
     def __str__(self):
         return self.className
-
-
-    

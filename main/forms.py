@@ -46,3 +46,7 @@ class InstructorForm(UserForm):
 class JoinClassroomForm(forms.Form):
     classroom_code = forms.CharField(max_length=5, label="Classroom Code", 
                                     widget=forms.TextInput(attrs={'placeholder': 'Enter classroom code'}))
+
+class ConfirmJoinClassroomForm(forms.Form):
+    classroom_id = forms.IntegerField(widget=forms.HiddenInput())
+    confirm = forms.CharField(initial="yes", widget=forms.HiddenInput())

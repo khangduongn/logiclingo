@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import ClassroomForm, StudentForm, InstructorForm, JoinClassroomForm
+from .forms import ClassroomForm, StudentForm, InstructorForm, JoinClassroomForm, ConfirmJoinClassroomForm
 from .models import Classroom, Student, Instructor, User
 from django.contrib.auth import login
 from django.contrib import messages
@@ -110,29 +110,38 @@ def classroom_settings(request, id):
 
 @login_required
 def join_classroom(request):
-    
     if request.method == 'POST':
-        if 'confirm' in request.POST:
-            classroom_id = request.POST.get('classroom_id')
+        form = ConfirmJoinClassroomForm(request.POST)
+        
+        if form.is_valid():
+            classroom_id = form.cleaned_data['classroom_id']
             classroom = get_object_or_404(Classroom, classroomID=classroom_id)
-               
-            classroom.students.add(request.user.student)
             
+            classroom.students.add(request.user.student)
             messages.success(request, f"Welcome to {classroom.instructorName}'s classroom!")
             return redirect('index')
-        
-        form = JoinClassroomForm(request.POST)
-        if form.is_valid():
-            classroom_code = form.cleaned_data['classroom_code']
-            try:
-                classroom = Classroom.objects.get(classroomCode=classroom_code)
-                return render(request, 'confirm_join_classroom.html', {
-                    'classroom': classroom,
-                    'student': request.user.student
-                })
-            except Classroom.DoesNotExist:
-                form.add_error('classroom_code', "Classroom not found. Please check the code and try again.")
-    else:
-        form = JoinClassroomForm()
-    
+
+    form = JoinClassroomForm()
     return render(request, 'join_classroom.html', {'form': form})
+
+
+@login_required
+def confirm_join_classroom(request):
+    classroom_code = request.GET.get('classroom_code')
+
+    if not classroom_code:
+        messages.error(request, "Invalid classroom link.")
+        return redirect('index')
+
+    try:
+        classroom = Classroom.objects.get(classroomCode=classroom_code)
+    except Classroom.DoesNotExist:
+        messages.error(request, "Classroom not found.")
+        return redirect('index')
+
+    form = ConfirmJoinClassroomForm(initial={'classroom_id': classroom.classroomID})
+
+    return render(request, 'confirm_join_classroom.html', {
+        'classroom': classroom,
+        'form': form
+    })
