@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load custom_filters %}
+
 {% block title %} Classroom {{ classroom.classroomID }} {% endblock %}
 
 {% block content %} 
@@ -9,7 +11,7 @@
 <div>Using Default Roadmap </div>
 <div>Instructor Name: {{ classroom.instructorName }}</div>
 
-
+{% if request.user|is_instructor %}
 <a href="{% url 'classroom_settings' id=classroom.classroomID %}">Classroom Settings</a>
-
+{% endif %}
 {% endblock %}

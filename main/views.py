@@ -104,9 +104,9 @@ def classroom_settings(request, id):
         else:
             ClassroomController.inviteUsers(instructor_emails, id, False)
             
-        return render(request, 'classroom_settings.html', {'message': 'Emails Sent!'})
+        return render(request, 'classroom_settings.html', {'message': 'Emails Sent!', 'classroomID': id})
     
-    return render(request, 'classroom_settings.html', {'message': ''})
+    return render(request, 'classroom_settings.html', {'message': '', 'classroomID': id})
 
 @login_required
 def join_classroom(request):
