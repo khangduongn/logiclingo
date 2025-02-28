@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %} Home {% endblock %}
+
+{% block content %} 
+<a href="{% url 'create_student' %}" class="btn btn-info" role="button">Create Student</a>
+<a href="{% url 'create_instructor' %}" class="btn btn-info" role="button">Create Instructor</a>
+
+{% endblock %}

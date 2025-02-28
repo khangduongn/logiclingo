@@ -7,5 +7,6 @@
 <div>Instructor Statistics</div>
 <div>Department: {{ instructor.department }}</div>
 <div>Employment Status: {{ instructor.employed }}</div>
+<a href="{% url 'create_classroom' %}" class="btn btn-info" role="button">Create Classroom</a>
 
 {% endblock %}

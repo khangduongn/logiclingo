@@ -6,16 +6,16 @@
 <p>Is this your correct instructor?</p>
 
 <div class="instructor-details">
-    <h2>{{ classroom.instructorLastName }}</h2>
+    <h2>{{ classroom.instructorName }}</h2>
     <!-- Add any other classroom details you want to show -->
 </div>
 
-<form method="post" action="{% url 'join_classroom' student_id=student.userID %}">
+<form method="post" action="{% url 'join_classroom' %}">
     {% csrf_token %}
     <input type="hidden" name="classroom_id" value="{{ classroom.classroomID }}">
     <input type="hidden" name="confirm" value="yes">
     <button type="submit" class="btn-yes">Yes, this is correct</button>
 </form>
 
-<a href="{% url 'join_classroom' student_id=student.userID %}" class="btn-no">No, try again</a>
+<a href="{% url 'join_classroom' %}" class="btn-no">No, try again</a>
 {% endblock %}

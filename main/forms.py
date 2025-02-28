@@ -8,7 +8,7 @@ class ClassroomForm(forms.ModelForm):
 
     class Meta:
         model = Classroom
-        fields = ['className', 'startDate', 'endDate']  
+        fields = ['className', 'startDate', 'endDate', 'instructorName']  
         widgets = {
             'startDate': forms.DateInput(attrs={'type': 'date'}),
             'endDate': forms.DateInput(attrs={'type': 'date'}),
@@ -42,11 +42,6 @@ class InstructorForm(UserForm):
     class Meta(UserForm.Meta):
         model = Instructor
         fields = UserForm.Meta.fields + ['department']
-
-class LoginForm(forms.Form):
-    username = forms.CharField(max_length=25)
-    password = forms.CharField(widget=forms.PasswordInput)
-
 
 class JoinClassroomForm(forms.Form):
     classroom_code = forms.CharField(max_length=5, label="Classroom Code", 

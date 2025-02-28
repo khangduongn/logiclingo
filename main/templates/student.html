@@ -16,7 +16,7 @@
             {% for classroom in student.classrooms.all %}
                 <li>
                     <a href="{% url 'classroom' id=classroom.classroomID %}">
-                        {{ classroom.className }} ({{ classroom.instructorLastName }})
+                        {{ classroom.className }} ({{ classroom.instructorName }})
                     </a>
                 </li>
             {% endfor %}
@@ -26,5 +26,5 @@
     {% endif %}
 </div>
 
-<a href="{% url 'join_classroom' student_id=student.userID %}" class="join-classroom-btn">Join a Classroom</a>
+<a href="{% url 'join_classroom' %}" class="join-classroom-btn">Join a Classroom</a>
 {% endblock %}
