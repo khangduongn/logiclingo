@@ -5,10 +5,10 @@
 {% block content %}
 <h1>Confirm Classroom</h1>
 <p>Is this your correct instructor?</p>
-
-<div class="instructor-details">
+<div>
     <h2>{{ classroom.instructorName }}</h2>
-</div>
+    <h2>{{ classroom.className }}</h2>
+ </div>
 
 <form method="post" action="{% url 'join_classroom' %}">
     {% csrf_token %}
