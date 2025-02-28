@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block title %}Confirm Join Classroom{% endblock %}
 
 {% block content %}
@@ -7,13 +8,11 @@
 
 <div class="instructor-details">
     <h2>{{ classroom.instructorName }}</h2>
-    <!-- Add any other classroom details you want to show -->
 </div>
 
 <form method="post" action="{% url 'join_classroom' %}">
     {% csrf_token %}
-    <input type="hidden" name="classroom_id" value="{{ classroom.classroomID }}">
-    <input type="hidden" name="confirm" value="yes">
+    {{ form.as_p }} 
     <button type="submit" class="btn-yes">Yes, this is correct</button>
 </form>
 
