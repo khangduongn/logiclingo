@@ -8,7 +8,7 @@ class ClassroomForm(forms.ModelForm):
 
     class Meta:
         model = Classroom
-        fields = ['className', 'startDate', 'endDate', 'instructorName']  
+        fields = ['className', 'startDate', 'endDate']  
         widgets = {
             'startDate': forms.DateInput(attrs={'type': 'date'}),
             'endDate': forms.DateInput(attrs={'type': 'date'}),

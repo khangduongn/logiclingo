@@ -10,6 +10,9 @@ from django.contrib.auth.decorators import login_required
 def is_student(user):
     return hasattr(user, 'student')
 
+def is_in_classroom(user, classroom):
+    return (classroom.instructors.filter(userID=user.userID).exists() or classroom.students.filter(userID=user.userID).exists())
+
 @login_required
 def index(request):
 
@@ -32,7 +35,9 @@ def create_classroom(request):
     if request.method == 'POST':
         createClassroomForm = ClassroomForm(request.POST)
         if createClassroomForm.is_valid():
-            newClassroom = createClassroomForm.save()  
+            newClassroom = createClassroomForm.save(commit=False)  
+            newClassroom.instructorName = request.user.firstName + ' ' + request.user.lastName
+            newClassroom.save() 
             newClassroom.instructors.add(request.user.instructor)
             return redirect('classroom', id=newClassroom.classroomID)
 
@@ -44,8 +49,7 @@ def classroom(request, id):
     classroom = get_object_or_404(Classroom, classroomID=id)
 
     #if the user is in the classroom, then let them see the classroom
-    if (classroom.instructors.filter(userID=request.user.userID).exists() or
-        classroom.students.filter(userID=request.user.userID).exists()):
+    if is_in_classroom(request.user, classroom):
         return render(request, 'classroom.html', {'classroom': classroom})
     else:
         return redirect('index')
@@ -84,6 +88,11 @@ def create_instructor(request):
 
 @login_required
 def classroom_settings(request, id):
+
+    classroom = get_object_or_404(Classroom, classroomID=id)
+
+    if is_student(request.user) or not is_in_classroom(request.user, classroom):
+        return redirect('index')
 
     if request.method == 'POST':
 
