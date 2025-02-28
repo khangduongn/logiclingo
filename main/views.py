@@ -8,12 +8,19 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Classroom, Student, Instructor, User
 from .controllers import ClassroomController
-
+from django.contrib.auth.decorators import login_required
 from .controllers import ClassroomController
 
-
+@login_required
 def index(request):
-    return render(request, 'index.html')
+
+    user = request.user
+
+    if hasattr(user, 'instructor'): 
+        return render(request, 'instructor.html', {'instructor': user.instructor})
+
+    else:
+        return render(request, 'student.html', {'student': user.student})
 
 def create_classroom(request):
     createClassroomForm = ClassroomForm()
@@ -30,14 +37,6 @@ def classroom(request, id):
     classroom = get_object_or_404(Classroom, classroomID=id)
     return render(request, 'classroom.html', {'classroom': classroom})
 
-def student(request, id):
-    student = get_object_or_404(Student, userID=id)
-    return render(request, 'student.html', {'student': student})
-
-def instructor(request, id):
-    instructor = get_object_or_404(Instructor, userID=id)
-    return render(request, 'instructor.html', {'instructor': instructor})
-
 def create_student(request):
 
     createStudentForm = StudentForm()
@@ -45,8 +44,12 @@ def create_student(request):
     if request.method == 'POST':
         createStudentForm = StudentForm(request.POST)
         if createStudentForm.is_valid():
-            newStudent = createStudentForm.save()
-            return redirect('student', id=newStudent.userID)
+            newStudent = createStudentForm.save(commit=False)
+            newStudent.set_password(createStudentForm.cleaned_data['password'])
+            newStudent.save()
+            login(request, newStudent)
+
+            return redirect('index')
 
     return render(request, 'create_student.html', {'form': createStudentForm})
 
@@ -58,7 +61,11 @@ def create_instructor(request):
         createInstructorForm = InstructorForm(request.POST)
         if createInstructorForm.is_valid():
             newInstructor = createInstructorForm.save()
-            return redirect('instructor', id=newInstructor.userID)
+            newInstructor.set_password(createInstructorForm.cleaned_data['password'])
+            newInstructor.save()
+            login(request, newInstructor)
+
+            return redirect('index')
 
     return render(request, 'create_instructor.html', {'form': createInstructorForm})
 
@@ -70,10 +77,10 @@ def user_login(request):
             username = loginForm.cleaned_data['username']
             password = loginForm.cleaned_data['password']
             user = authenticate(request, username=username, password=password)
-            print(user)
+
             if user is not None:
                 login(request, user)
-                return redirect('student', id=user.id)
+                return redirect('student', id=user.userID)
             else:
                 loginForm.add_error(None, "Invalid username or password")
     

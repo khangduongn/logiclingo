@@ -2,20 +2,43 @@ from django.db import models
 import string, random
 from django.core.validators import MinLengthValidator
 from django.core.mail import send_mail
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
-class User(models.Model):
+class UserManager(BaseUserManager):
+    def create_user(self, email, username, password=None, **extra_fields):
+
+        if not username:
+            raise ValueError("User must have a username")
+        user = self.model(username=username, email=self.normalize_email(email), **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, username, password=None, **extra_fields):
+        """Creates and saves a superuser."""
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        return self.create_user(email, username, password, **extra_fields)
+    
+class User(AbstractBaseUser, PermissionsMixin):
     userID = models.AutoField(primary_key=True)
     firstName = models.CharField(max_length=100, blank=False)
     lastName = models.CharField(max_length=100, blank=False)
     email = models.EmailField(max_length=100,blank=False,unique=True)
     username = models.CharField(max_length=25, unique=True, blank=False)
-    password = models.CharField(max_length=20, blank=False, validators=[MinLengthValidator(8)])
+    password = models.CharField(max_length=100, blank=False, validators=[MinLengthValidator(8)])
     feedback = models.CharField(max_length=200)
     # classrooms = models.ManyToManyField(Classroom, blank=True)
 
-    class Meta:
-        #this is abstract model
-        abstract = True 
+    #django fields (these are only here to make user authentication work properly in Django)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    date_joined = models.DateTimeField(auto_now_add=True)
+
+    objects = UserManager() 
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email', 'firstName', 'lastName']
 
 class Student(User):
     numExercisesCompleted = models.IntegerField(default=0)
