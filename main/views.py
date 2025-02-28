@@ -123,7 +123,6 @@ def join_classroom(request):
         
         form = JoinClassroomForm(request.POST)
         if form.is_valid():
-            print("form is valid rn")
             classroom_code = form.cleaned_data['classroom_code']
             try:
                 classroom = Classroom.objects.get(classroomCode=classroom_code)
