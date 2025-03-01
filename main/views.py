@@ -98,13 +98,15 @@ def classroom_settings(request, id):
 
         student_emails = request.POST.get('student_emails')
         instructor_emails = request.POST.get('instructor_emails')
+        invalid_emails = []
 
         if student_emails:
-            ClassroomController.inviteUsers(student_emails, id, True)
+            invalid_emails = ClassroomController.inviteUsers(student_emails, id, True)
         else:
-            ClassroomController.inviteUsers(instructor_emails, id, False)
+            invalid_emails = ClassroomController.inviteUsers(instructor_emails, id, False)
             
-        return render(request, 'classroom_settings.html', {'message': 'Emails Sent!', 'classroomID': id})
+        error = "The following email addresses were unable to be reached: " + ", ".join(invalid_emails)
+        return render(request, 'classroom_settings.html', {'message': 'Emails Sent! ' + error, 'classroomID': id})
     
     return render(request, 'classroom_settings.html', {'message': '', 'classroomID': id})
 

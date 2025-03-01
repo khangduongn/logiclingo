@@ -98,13 +98,17 @@ class Classroom(models.Model):
                 f"Click the link below to confirm your enrollment:\n{confirm_url}"
             )
 
-        send_mail(
-            subject,
-            message,
-            "logiclingo@drexel.edu",
-            [email],
-            fail_silently=False,
-        )
+        try:
+            send_mail(
+                subject,
+                message,
+                "logiclingo@drexel.edu",
+                [email],
+                fail_silently=False,
+            )
+            return True
+        except:
+            return False
 
     def __str__(self):
         return self.className
