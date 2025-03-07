@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import ClassroomForm, StudentForm, InstructorForm, JoinClassroomForm, ConfirmJoinClassroomForm, QuestionForm
+from .forms import *
 from .models import Classroom, Question
 from django.contrib.auth import login
 from django.contrib import messages
@@ -192,3 +192,18 @@ def question(request, classroomID, questionID):
     question = get_object_or_404(Question, questionID=questionID)
     return render(request, 'question.html', {'question': question, 'classroomID': classroomID})
     
+
+@login_required
+def modify_question(request, classroomID, questionID):
+
+    if is_student(request.user): 
+        return redirect('index')
+    question = get_object_or_404(Question, questionID=questionID)
+    modifyQuestionForm = ModifyQuestionForm(instance=question)
+    if request.method == 'POST':
+        modifyQuestionForm = ModifyQuestionForm(request.POST, instance=question)
+        if modifyQuestionForm.is_valid():
+            modifyQuestionForm.save()
+            return redirect('question', classroomID=classroomID, questionID=question.questionID)
+
+    return render(request, 'modify_question.html', {'form': modifyQuestionForm, 'classroomID': classroomID, 'question': question})

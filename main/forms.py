@@ -57,4 +57,8 @@ class QuestionForm(forms.ModelForm):
     class Meta:
         model = Question
         fields = ['questionType', 'questionPrompt', 'correctAnswer']  
-        
+
+class ModifyQuestionForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = ['questionType', 'questionPrompt', 'correctAnswer']
