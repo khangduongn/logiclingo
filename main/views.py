@@ -1,9 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import ClassroomForm, StudentForm, InstructorForm, JoinClassroomForm, ConfirmJoinClassroomForm
-from .models import Classroom, Student, Instructor, User
+from .forms import ClassroomForm, StudentForm, InstructorForm, JoinClassroomForm, ConfirmJoinClassroomForm, QuestionForm
+from .models import Classroom
 from django.contrib.auth import login
 from django.contrib import messages
-from .controllers import ClassroomController
+from .controllers import ClassroomController, QuestionController
 from django.contrib.auth.decorators import login_required
 
 
@@ -162,3 +162,24 @@ def confirm_join_classroom(request):
         'classroom': classroom,
         'form': form
     })
+
+@login_required
+def create_question(request):
+    #if user is a student then redirect them back (students not allowed here)
+    if is_student(request.user):
+        return redirect('index')
+    
+    createQuestionForm = QuestionForm()
+    
+    if request.method == 'POST':
+        questionType = request.POST.get('questionType', 'multiple_choice')
+        questionPrompt = request.POST.get('questionPrompt', '')
+        correctAnswer = request.POST.get('correctAnswer', '')
+
+        question = QuestionController.createNewQuestion(questionType, questionPrompt, correctAnswer)
+
+        if question:
+        
+            return redirect('question', id=question.questionID)
+
+    return render(request, 'create_question.html', {'form': createQuestionForm})

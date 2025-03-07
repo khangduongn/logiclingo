@@ -123,12 +123,12 @@ QUESTION_CHOICES = (
 class Question:
     questionID = models.AutoField(primary_key=True)
     questionType = models.CharField(max_length=100, choices=QUESTION_CHOICES, default='multiple_choice', blank=False)
-    questionPrompt = models.TextField()
-    correctAnswer = models.TextField()
+    questionPrompt = models.TextField(blank=False)
+    correctAnswer = models.TextField(blank=False)
 
 class Answer:
     answerID = models.AutoField(primary_key=True)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="answers")
+    question = models.ForeignKey('Question', on_delete=models.CASCADE, related_name="answers")
     answer = models.TextField(blank=False)
     correct = models.BooleanField(default=False)
 

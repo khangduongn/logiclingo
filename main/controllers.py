@@ -1,4 +1,4 @@
-from .models import Classroom
+from .models import Classroom, Question
 from django.shortcuts import get_object_or_404
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
@@ -25,3 +25,19 @@ class ClassroomController:
                 invalid_emails.append(email)
                 
         return invalid_emails
+    
+class QuestionController:
+
+    @staticmethod
+    def createNewQuestion(questionType: str, questionPrompt: str, correctAnswer: str):
+        
+        #check if the question prompt and correct answer are not empty
+        if questionPrompt.strip() and correctAnswer.strip():
+            return Question.objects.create(
+                questionType=questionType,
+                questionPrompt=questionPrompt,
+                correctAnswer=correctAnswer
+            )
+
+        else:
+            return None
