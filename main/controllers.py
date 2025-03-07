@@ -31,8 +31,11 @@ class QuestionController:
     @staticmethod
     def createNewQuestion(questionType: str, questionPrompt: str, correctAnswer: str):
         
+        questionPrompt = questionPrompt.strip()
+        correctAnswer = correctAnswer.strip()
+
         #check if the question prompt and correct answer are not empty
-        if questionPrompt.strip() and correctAnswer.strip():
+        if questionPrompt and correctAnswer:
             return Question.objects.create(
                 questionType=questionType,
                 questionPrompt=questionPrompt,

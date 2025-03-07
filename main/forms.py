@@ -52,7 +52,7 @@ class ConfirmJoinClassroomForm(forms.Form):
     confirm = forms.CharField(initial="yes", widget=forms.HiddenInput())
 
 
-class QuestionForm(forms.Form):
+class QuestionForm(forms.ModelForm):
     
     class Meta:
         model = Question

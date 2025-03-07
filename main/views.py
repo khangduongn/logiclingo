@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .forms import ClassroomForm, StudentForm, InstructorForm, JoinClassroomForm, ConfirmJoinClassroomForm, QuestionForm
-from .models import Classroom
+from .models import Classroom, Question
 from django.contrib.auth import login
 from django.contrib import messages
 from .controllers import ClassroomController, QuestionController
@@ -164,22 +164,31 @@ def confirm_join_classroom(request):
     })
 
 @login_required
-def create_question(request):
-    #if user is a student then redirect them back (students not allowed here)
+def create_question(request, classroomID):
+    # If the user is a student, redirect them back
     if is_student(request.user):
         return redirect('index')
     
-    createQuestionForm = QuestionForm()
-    
+    form = QuestionForm()  
+
     if request.method == 'POST':
-        questionType = request.POST.get('questionType', 'multiple_choice')
-        questionPrompt = request.POST.get('questionPrompt', '')
-        correctAnswer = request.POST.get('correctAnswer', '')
+        form = QuestionForm(request.POST)
+        if form.is_valid():
+            questionType = form.cleaned_data['questionType']
+            questionPrompt = form.cleaned_data['questionPrompt']
+            correctAnswer = form.cleaned_data['correctAnswer']
 
-        question = QuestionController.createNewQuestion(questionType, questionPrompt, correctAnswer)
+            question = QuestionController.createNewQuestion(questionType, questionPrompt, correctAnswer)
 
-        if question:
-        
-            return redirect('question', id=question.questionID)
+            if question:
+                return redirect('question', classroomID=classroomID, questionID=question.questionID)
 
-    return render(request, 'create_question.html', {'form': createQuestionForm})
+    return render(request, 'create_question.html', {'form': form, 'classroomID': classroomID})
+
+
+@login_required
+def question(request, classroomID, questionID):
+
+    question = get_object_or_404(Question, questionID=questionID)
+    return render(request, 'question.html', {'question': question, 'classroomID': classroomID})
+    

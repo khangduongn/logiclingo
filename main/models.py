@@ -120,13 +120,13 @@ QUESTION_CHOICES = (
     ('fill_in_the_blanks','Fill In The Blank'),
 )
 
-class Question:
+class Question(models.Model):
     questionID = models.AutoField(primary_key=True)
     questionType = models.CharField(max_length=100, choices=QUESTION_CHOICES, default='multiple_choice', blank=False)
     questionPrompt = models.TextField(blank=False)
     correctAnswer = models.TextField(blank=False)
 
-class Answer:
+class Answer(models.Model):
     answerID = models.AutoField(primary_key=True)
     question = models.ForeignKey('Question', on_delete=models.CASCADE, related_name="answers")
     answer = models.TextField(blank=False)

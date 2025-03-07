@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+
+{% block title %} Question {{ question.questionID }} {% endblock %}
+
+{% block content %} 
+
+<div>Question Type: {{ question.get_questionType_display}} </div>
+<div>Prompt: {{ question.questionPrompt}} </div>
+<div>Correct Answer: {{ question.correctAnswer }}</div>
+<a href="{% url 'classroom' id=classroomID %}" class="btn btn-light" role="button">Cancel</a>
+{% endblock content %} 
