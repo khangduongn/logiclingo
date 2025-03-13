@@ -13,5 +13,6 @@
 
 {% if request.user|is_instructor %}
 <a href="{% url 'classroom_settings' id=classroom.classroomID %}">Classroom Settings</a>
+<a href="{% url 'create_topic' classroomID=classroom.classroomID %}" class="btn btn-primary" role="button">Create Topic</a>
 {% endif %}
 {% endblock %}
