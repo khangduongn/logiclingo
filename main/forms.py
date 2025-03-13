@@ -60,3 +60,8 @@ class QuestionForm(forms.ModelForm):
     class Meta:
         model = Question
         fields = ['questionID', 'questionType', 'questionPrompt', 'correctAnswer']
+
+class ModifyExerciseForm(forms.ModelForm):
+    class Meta:
+        model = Exercise
+        fields = ['exerciseName', 'exerciseDescription']

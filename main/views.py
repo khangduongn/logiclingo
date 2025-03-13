@@ -181,3 +181,26 @@ def create_exercise(request):
         form = ExerciseForm()
     
     return render(request, 'create_exercise.html', {'form': form})
+
+
+@login_required
+def exercise(request, classroomID, exerciseID):
+
+    exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
+    return render(request, 'exercise.html', {'exercise': exercise, 'classroomID': classroomID})
+    
+
+@login_required
+def modify_exercise(request, classroomID, exerciseID):
+
+    if is_student(request.user): 
+        return redirect('index')
+    exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
+    modifyExerciseForm = ModifyExerciseForm(instance=exercise)
+    if request.method == 'POST':
+        modifyExerciseForm = ModifyExerciseForm(request.POST, instance=exercise)
+        if modifyExerciseForm.is_valid():
+            modifyExerciseForm.save()
+            return redirect('exercise', classroomID=classroomID, exerciseID=exercise.exerciseID)
+
+    return render(request, 'modify_exercise.html', {'form': modifyExerciseForm, 'classroomID': classroomID, 'exercise': exercise})
