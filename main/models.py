@@ -125,7 +125,7 @@ class Exercise(models.Model):
 class Question(models.Model):
     QUESTION_TYPES = [
         ('fill_blank', 'Fill in the Blank'),
-        ('click_drag', 'Click and Drag')
+        ('click_drag', 'Click and Drag'),
         ('matching', 'Matching'),
         ('ordering', 'Ordering'),
         ('translating', 'Translating'),
