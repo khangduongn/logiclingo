@@ -1,5 +1,5 @@
 from django import forms
-from .models import Classroom, User, Student, Instructor
+from .models import Classroom, User, Student, Instructor, Topic
 from django.core.validators import MinLengthValidator
 
 class ClassroomForm(forms.ModelForm):

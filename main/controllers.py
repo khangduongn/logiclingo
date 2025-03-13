@@ -1,4 +1,4 @@
-from .models import Classroom
+from .models import Classroom, Topic
 from django.shortcuts import get_object_or_404
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError

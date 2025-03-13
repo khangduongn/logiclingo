@@ -1,9 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import ClassroomForm, StudentForm, InstructorForm, JoinClassroomForm, ConfirmJoinClassroomForm
-from .models import Classroom, Student, Instructor, User
+from .forms import ClassroomForm, StudentForm, InstructorForm, JoinClassroomForm, ConfirmJoinClassroomForm, TopicForm
+from .models import Classroom, Student, Instructor, User, Topic
 from django.contrib.auth import login
 from django.contrib import messages
-from .controllers import ClassroomController
+from .controllers import ClassroomController, TopicController
 from django.contrib.auth.decorators import login_required
 
 
