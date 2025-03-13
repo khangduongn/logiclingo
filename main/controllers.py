@@ -25,3 +25,23 @@ class ClassroomController:
                 invalid_emails.append(email)
                 
         return invalid_emails
+
+class TopicController:
+
+    @staticmethod
+    def createNewTopic(topicName: str, topicDescription: str, topicNote: str):
+        
+        topicName = topicName.strip()
+        topicDescription = topicDescription.strip()
+        topicNote = topicNote.strip()
+
+        #check if the topic name, desc, and note are not empty
+        if topicName and topicDescription and topicNote:
+            return Topic.objects.create(
+                topicName=topicName,
+                topicDescription=topicDescription,
+                topicNote=topicNote
+            )
+
+        else:
+            return None

@@ -50,3 +50,9 @@ class JoinClassroomForm(forms.Form):
 class ConfirmJoinClassroomForm(forms.Form):
     classroom_id = forms.IntegerField(widget=forms.HiddenInput())
     confirm = forms.CharField(initial="yes", widget=forms.HiddenInput())
+
+class TopicForm(forms.ModelForm):
+    
+    class Meta:
+        model = Topic
+        fields = ['topicName', 'topicDescription', 'topicNote']  

@@ -112,3 +112,9 @@ class Classroom(models.Model):
 
     def __str__(self):
         return self.className
+
+class Topic(models.Model):
+    topicID = models.AutoField(primary_key=True)
+    topicName = models.TextField(blank=False)
+    topicDescription = models.TextField(blank=False)
+    topicNote = models.TextField(blank=False)
