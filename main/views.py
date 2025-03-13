@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import ClassroomForm, StudentForm, InstructorForm, JoinClassroomForm, ConfirmJoinClassroomForm
-from .models import Classroom, Student, Instructor, User
+from .forms import ClassroomForm, StudentForm, InstructorForm, JoinClassroomForm, ConfirmJoinClassroomForm, ExerciseForm
+from .models import Classroom, Student, Instructor, User, Exercise
 from django.contrib.auth import login
 from django.contrib import messages
 from .controllers import ClassroomController
@@ -162,3 +162,22 @@ def confirm_join_classroom(request):
         'classroom': classroom,
         'form': form
     })
+
+
+@login_required
+def create_exercise(request):
+    if is_student(request.user):
+        return redirect('index')
+
+    if request.method == 'POST':
+        form = ExerciseForm(request.POST)
+
+    if form.is_valid():
+        exercise = form.save(commit=False)
+        exercise.created_by = request.user
+        exercise.save()
+        return redirect('exercise_detail', exerciseID=exercise.exerciseID)
+    else:
+        form = ExerciseForm()
+    
+    return render(request, 'create_exercise.html', {'form': form})

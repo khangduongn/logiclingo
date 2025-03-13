@@ -112,3 +112,32 @@ class Classroom(models.Model):
 
     def __str__(self):
         return self.className
+
+class Exercise(models.Model):
+    exerciseID = models.CharField(max_length = 10, primary_key = True)
+    exerciseName = models.CharField(max_length = 200)
+    exerciseDescription = models.TextField()
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+  
+    def __str__(self):
+        return self.exerciseName
+
+class Question(models.Model):
+    QUESTION_TYPES = [
+        ('fill_blank', 'Fill in the Blank'),
+        ('click_drag', 'Click and Drag')
+        ('matching', 'Matching'),
+        ('ordering', 'Ordering'),
+        ('translating', 'Translating'),
+        ('multiple_choice', 'Multiple Choice'),
+
+    ]
+
+    questionID = models.CharField(max_length = 100, primary_key = True)
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='questions')
+    questionType = models.CharField(max_length=100, choices=QUESTION_TYPES)
+    questionPrompt = models.TextField()
+    correctAnswer = models.TextField()
+
+    def __str__(self):
+        return self.questionPrompt

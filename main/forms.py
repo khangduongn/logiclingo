@@ -1,5 +1,5 @@
 from django import forms
-from .models import Classroom, User, Student, Instructor
+from .models import Classroom, User, Student, Instructor, Exercise, Question
 from django.core.validators import MinLengthValidator
 
 class ClassroomForm(forms.ModelForm):
@@ -50,3 +50,13 @@ class JoinClassroomForm(forms.Form):
 class ConfirmJoinClassroomForm(forms.Form):
     classroom_id = forms.IntegerField(widget=forms.HiddenInput())
     confirm = forms.CharField(initial="yes", widget=forms.HiddenInput())
+
+class ExerciseForm(forms.ModelForm):
+    class Meta:
+        model = Exercise
+        fields = ['exerciseID', 'exerciseName', 'exerciseDescription']
+
+class QuestionForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = ['questionID', 'questionType', 'questionPrompt', 'correctAnswer']
