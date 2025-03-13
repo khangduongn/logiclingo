@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+
+{% block title %} Topic {{ topic.topicID }} {% endblock %}
+
+{% block content %} 
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="topic-details">
+    <h2>{{ topic.topicName }}</h2>
+    <div class="topic-section">
+        <h3>Description</h3>
+        <p>{{ topic.topicDescription }}</p>
+    </div>
+    <div class="topic-section">
+        <h3>Notes</h3>
+        <p>{{ topic.topicNote }}</p>
+    </div>
+</div>
+
+{% if request.user|is_instructor %}
+<div class="topic-actions">
+    <a href="{% url 'edit_topic' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-primary" role="button">Edit Topic</a>
+    <a href="{% url 'delete_topic' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-danger" role="button">Delete Topic</a>
+</div>
+{% endif %}
+
+<a href="{% url 'classroom' id=classroomID %}" class="btn btn-light" role="button">Back to Classroom</a>
+
+{% endblock content %} 
