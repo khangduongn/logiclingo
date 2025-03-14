@@ -13,6 +13,7 @@ urlpatterns = [
     path('join-classroom/', views.join_classroom, name='join_classroom'),
     path('classroom/<int:id>/settings', views.classroom_settings, name='classroom_settings'),
     path('confirm-join/', views.confirm_join_classroom, name='confirm_join_classroom'),
+    path('classroom/<int:classroomID>/create_topic/', views.create_topic, name='create_topic'),
+    path('classroom/<int:classroomID>/topic/<int:topicID>/', views.topic, name='topic'),
     path('classroom/<int:classroomID>/question/<int:questionID>/modify/', views.modify_question, name='modify_question'),
-
 ]

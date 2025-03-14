@@ -113,6 +113,11 @@ class Classroom(models.Model):
     def __str__(self):
         return self.className
 
+class Topic(models.Model):
+    topicID = models.AutoField(primary_key=True)
+    topicName = models.TextField(blank=False)
+    topicDescription = models.TextField(blank=False)
+    topicNote = models.TextField(blank=False)
 
 QUESTION_CHOICES = (
     ('multiple_choice','Multiple Choice'),
@@ -131,4 +136,3 @@ class Answer(models.Model):
     question = models.ForeignKey('Question', on_delete=models.CASCADE, related_name="answers")
     answer = models.TextField(blank=False)
     correct = models.BooleanField(default=False)
-

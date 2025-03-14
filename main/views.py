@@ -1,9 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .forms import *
-from .models import Classroom, Question
+from .models import *
 from django.contrib.auth import login
 from django.contrib import messages
-from .controllers import ClassroomController, QuestionController
+from .controllers import ClassroomController, TopicController
 from django.contrib.auth.decorators import login_required
 
 
@@ -164,6 +164,32 @@ def confirm_join_classroom(request):
     })
 
 @login_required
+def create_topic(request, classroomID):
+
+      form = TopicForm()  
+
+    if request.method == 'POST':
+        form = TopicForm(request.POST)
+        if form.is_valid():
+            topicName = form.cleaned_data['topicName']
+            topicDescription = form.cleaned_data['topicDescription']
+            topicNote = form.cleaned_data['topicNote']
+
+            topic = TopicController.createNewTopic(topicName, topicDescription, topicNote)
+
+            if topic:
+                return redirect('topic', classroomID=classroomID, topicID=topic.topicID)
+
+    return render(request, 'create_topic.html', {'form': form, 'classroomID': classroomID})
+
+
+@login_required
+def topic(request, classroomID, topicID):
+
+    topic = get_object_or_404(Topic, topicID=topicID)
+    return render(request, 'topic.html', {'topic': topic, 'classroomID': classroomID})
+    
+  
 def create_question(request, classroomID):
     # If the user is a student, redirect them back
     if is_student(request.user):
