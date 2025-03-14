@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Modify Question{% endblock %}
+
+{% block content %}
+<h1>Modify Question</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save</button>
+</form>
+
+<a href="{% url 'question' classroomID=classroomID questionID=question.questionID %}" class="btn btn-light">Cancel</a>
+{% endblock %}

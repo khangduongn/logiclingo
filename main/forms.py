@@ -1,5 +1,6 @@
 from django import forms
-from .models import Classroom, User, Student, Instructor, Topic
+from .models import Classroom, User, Student, Instructor, Topic, Question
+
 from django.core.validators import MinLengthValidator
 
 class ClassroomForm(forms.ModelForm):
@@ -56,3 +57,14 @@ class TopicForm(forms.ModelForm):
     class Meta:
         model = Topic
         fields = ['topicName', 'topicDescription', 'topicNote']  
+
+class QuestionForm(forms.ModelForm):
+    
+    class Meta:
+        model = Question
+        fields = ['questionType', 'questionPrompt', 'correctAnswer']  
+
+class ModifyQuestionForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = ['questionType', 'questionPrompt', 'correctAnswer']
