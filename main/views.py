@@ -1,9 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import ClassroomForm, StudentForm, InstructorForm, JoinClassroomForm, ConfirmJoinClassroomForm
-from .models import Classroom, Student, Instructor, User
+from .forms import *
+from .models import Classroom, Question
 from django.contrib.auth import login
 from django.contrib import messages
-from .controllers import ClassroomController
+from .controllers import ClassroomController, QuestionController
 from django.contrib.auth.decorators import login_required
 
 
@@ -162,3 +162,48 @@ def confirm_join_classroom(request):
         'classroom': classroom,
         'form': form
     })
+
+@login_required
+def create_question(request, classroomID):
+    # If the user is a student, redirect them back
+    if is_student(request.user):
+        return redirect('index')
+    
+    form = QuestionForm()  
+
+    if request.method == 'POST':
+        form = QuestionForm(request.POST)
+        if form.is_valid():
+            questionType = form.cleaned_data['questionType']
+            questionPrompt = form.cleaned_data['questionPrompt']
+            correctAnswer = form.cleaned_data['correctAnswer']
+
+            question = QuestionController.createNewQuestion(questionType, questionPrompt, correctAnswer)
+
+            if question:
+                return redirect('question', classroomID=classroomID, questionID=question.questionID)
+
+    return render(request, 'create_question.html', {'form': form, 'classroomID': classroomID})
+
+
+@login_required
+def question(request, classroomID, questionID):
+
+    question = get_object_or_404(Question, questionID=questionID)
+    return render(request, 'question.html', {'question': question, 'classroomID': classroomID})
+    
+
+@login_required
+def modify_question(request, classroomID, questionID):
+
+    if is_student(request.user): 
+        return redirect('index')
+    question = get_object_or_404(Question, questionID=questionID)
+    modifyQuestionForm = ModifyQuestionForm(instance=question)
+    if request.method == 'POST':
+        modifyQuestionForm = ModifyQuestionForm(request.POST, instance=question)
+        if modifyQuestionForm.is_valid():
+            modifyQuestionForm.save()
+            return redirect('question', classroomID=classroomID, questionID=question.questionID)
+
+    return render(request, 'modify_question.html', {'form': modifyQuestionForm, 'classroomID': classroomID, 'question': question})
