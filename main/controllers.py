@@ -40,7 +40,7 @@ class TopicController:
             return Topic.objects.create(
                 topicName=topicName,
                 topicDescription=topicDescription,
-                topicNote=topicNote
+                topicNote=topicNote)
     
 class QuestionController:
 

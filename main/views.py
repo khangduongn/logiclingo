@@ -3,7 +3,7 @@ from .forms import *
 from .models import *
 from django.contrib.auth import login
 from django.contrib import messages
-from .controllers import ClassroomController, TopicController
+from .controllers import *
 from django.contrib.auth.decorators import login_required
 
 
@@ -166,7 +166,7 @@ def confirm_join_classroom(request):
 @login_required
 def create_topic(request, classroomID):
 
-      form = TopicForm()  
+    form = TopicForm()  
 
     if request.method == 'POST':
         form = TopicForm(request.POST)
