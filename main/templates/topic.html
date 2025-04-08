@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+
+{% block title %} Topic {{ topic.topicID }} {% endblock %}
+
+{% block content %} 
+
+<div>Topic Name: {{ topic.topicName}} </div>
+<div>Topic Description: {{ topic.topicDescription}} </div>
+<div>Topic Note: {{ topic.topicNote }}</div>
+<a href="{% url 'classroom' id=classroomID %}" class="btn btn-light" role="button">Cancel</a>
+{% endblock content %} 
