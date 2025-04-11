@@ -13,5 +13,30 @@
 
 {% if request.user|is_instructor %}
 <a href="{% url 'classroom_settings' id=classroom.classroomID %}">Classroom Settings</a>
+
+<div class="topics">
+    <h3>Topics</h3>
+    {% if classroom.topics.all %}
+        <ul class="topics-list">
+            {% for topic in classroom.topics.all %}
+                <li>
+                    <a href="{% url 'topic' classroomID=classroom.classroomID topicID=topic.topicID %}">
+                        {{ topic.topicName }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>This classroom doesn't have any topics yet.</p>
+    {% endif %}
+</div>
+
+<a href="{% url 'create_topic' classroomID=classroom.classroomID %}" class="btn btn-primary" role="button">Create Topic</a>
+<a href="{% url 'index' %}" class="btn btn-light" role="button">Cancel</a>
+
 {% endif %}
+
+
+
+
 {% endblock %}

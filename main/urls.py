@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
-from django.contrib.auth.views import LogoutView
+
+
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -11,4 +12,12 @@ urlpatterns = [
     path('join-classroom/', views.join_classroom, name='join_classroom'),
     path('classroom/<int:id>/settings', views.classroom_settings, name='classroom_settings'),
     path('confirm-join/', views.confirm_join_classroom, name='confirm_join_classroom'),
+    path('classroom/<int:classroomID>/create_topic/', views.create_topic, name='create_topic'),
+    path('classroom/<int:classroomID>/topic/<int:topicID>/', views.topic, name='topic'),
+    path('classroom/<int:classroomID>/topic/<int:topicID>/exercise/<int:exerciseID>/create_question/', views.create_question, name='create_question'),
+    path('classroom/<int:classroomID>/topic/<int:topicID>/exercise/<int:exerciseID>/question/<int:questionID>/', views.question, name='question'),
+    path('classroom/<int:classroomID>/topic/<int:topicID>/exercise/<int:exerciseID>/question/<int:questionID>/modify/', views.modify_question, name='modify_question'),
+    path('classroom/<int:classroomID>/topic/<int:topicID>/create_exercise/', views.create_exercise, name='create_exercise'),
+    path('classroom/<int:classroomID>/topic/<int:topicID>/exercise/<int:exerciseID>/', views.exercise, name='exercise'),
+    path('classroom/<int:classroomID>/topic/<int:topicID>/exercise/<int:exerciseID>/modify/', views.modify_exercise, name='modify_exercise'),
 ]

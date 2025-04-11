@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %} Create Question {% endblock %}
+
+{% block content %} 
+<h1>Create Question</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Create Question</button>
+</form>
+<a href="{% url 'exercise' classroomID=classroomID topicID=topicID exerciseID=exerciseID %}" class="btn btn-light" role="button">Cancel</a>
+
+{% endblock %}

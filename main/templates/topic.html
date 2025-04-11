@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+
+{% block title %} Topic {{ topic.topicID }} {% endblock %}
+
+{% block content %} 
+
+<div>Topic Name: {{ topic.topicName}} </div>
+<div>Topic Description: {{ topic.topicDescription}} </div>
+<div>Topic Note: {{ topic.topicNote }}</div>
+
+<div class="exercises">
+    <h3>Exercises</h3>
+    {% if topic.exercises.all %}
+        <ul class="exercise-list">
+            {% for exercise in topic.exercises.all %}
+                <li>
+                    <a href="{% url 'exercise' classroomID=classroomID topicID=topic.topicID exerciseID=exercise.exerciseID %}">
+                        {{ exercise.exerciseName }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>This topic doesn't have any exercises yet.</p>
+    {% endif %}
+</div>
+
+<a href="{% url 'create_exercise' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-primary" role="button">Create Exercise</a>
+<a href="{% url 'classroom' id=classroomID %}" class="btn btn-light" role="button">Cancel</a>
+{% endblock content %} 
