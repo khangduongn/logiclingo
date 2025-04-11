@@ -118,18 +118,37 @@ class Topic(models.Model):
     topicName = models.TextField(blank=False)
     topicDescription = models.TextField(blank=False)
     topicNote = models.TextField(blank=False)
+    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name='topics')
 
-QUESTION_CHOICES = (
-    ('multiple_choice','Multiple Choice'),
-    ('true_false', 'True/False'),
-    ('fill_in_the_blanks','Fill In The Blank'),
-)
+
+class Exercise(models.Model):
+    exerciseID = models.AutoField(primary_key=True)
+    exerciseName = models.CharField(max_length = 200)
+    exerciseDescription = models.TextField()
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='exercises')
+  
+    def __str__(self):
+        return self.exerciseName
 
 class Question(models.Model):
+    QUESTION_TYPES = [
+        ('fill_blank', 'Fill in the Blank'),
+        ('click_drag', 'Click and Drag'),
+        ('matching', 'Matching'),
+        ('ordering', 'Ordering'),
+        ('translating', 'Translating'),
+        ('multiple_choice', 'Multiple Choice'),
+        ('true_false', 'True/False'),
+    ]
+    
     questionID = models.AutoField(primary_key=True)
-    questionType = models.CharField(max_length=100, choices=QUESTION_CHOICES, default='multiple_choice', blank=False)
+    questionType = models.CharField(max_length=100, choices=QUESTION_TYPES, default='multiple_choice', blank=False)
     questionPrompt = models.TextField(blank=False)
     correctAnswer = models.TextField(blank=False)
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='questions')
+
+    def __str__(self):
+        return self.questionPrompt
 
 class Answer(models.Model):
     answerID = models.AutoField(primary_key=True)

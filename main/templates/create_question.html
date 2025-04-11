@@ -8,6 +8,6 @@
     {{ form.as_p }}
     <button type="submit">Create Question</button>
 </form>
-<a href="{% url 'classroom' id=classroomID %}" class="btn btn-light" role="button">Cancel</a>
+<a href="{% url 'exercise' classroomID=classroomID topicID=topicID exerciseID=exerciseID %}" class="btn btn-light" role="button">Cancel</a>
 
 {% endblock %}
