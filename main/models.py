@@ -113,16 +113,6 @@ class Classroom(models.Model):
     def __str__(self):
         return self.className
 
-class Topic(models.Model):
-    topicID = models.AutoField(primary_key=True)
-    topicName = models.TextField()
-    topicDescription = models.TextField()
-    topicNote = models.TextField()
-    completed = models.BooleanField(default=False)
-    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name='topics')
-
-    def __str__(self):
-        return self.topicName
 
 class Topic(models.Model):
     topicID = models.AutoField(primary_key=True)
