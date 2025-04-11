@@ -1,42 +1,289 @@
 {% extends "base.html" %}
 {% load custom_filters %}
 
-{% block title %} Classroom {{ classroom.classroomID }} {% endblock %}
+{% block title %}{{ classroom.className }}{% endblock %}
 
-{% block content %} 
+{% block content %}
+<style>
+    .classroom-header {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
 
-<div> Classroom {{ classroom.className }} with class code {{ classroom.classroomCode }}</div>
-<div>Start Date: {{ classroom.startDate }}</div>
-<div>End Date: {{ classroom.endDate }}</div>
-<div>Using Default Roadmap </div>
-<div>Instructor Name: {{ classroom.instructorName }}</div>
+    .classroom-header h2 {
+        color: #333;
+        margin-bottom: 15px;
+    }
 
-{% if request.user|is_instructor %}
-<a href="{% url 'classroom_settings' id=classroom.classroomID %}">Classroom Settings</a>
+    .classroom-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 10px;
+    }
 
-<div class="topics">
-    <h3>Topics</h3>
-    {% if classroom.topics.all %}
-        <ul class="topics-list">
-            {% for topic in classroom.topics.all %}
-                <li>
-                    <a href="{% url 'topic' classroomID=classroom.classroomID topicID=topic.topicID %}">
-                        {{ topic.topicName }}
-                    </a>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>This classroom doesn't have any topics yet.</p>
-    {% endif %}
+    .classroom-info p {
+        margin: 5px 0;
+        color: #666;
+    }
+
+    .classroom-actions {
+        margin-bottom: 20px;
+    }
+
+    /* Roadmap Styles */
+    .roadmap-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 20px;
+        position: relative;
+    }
+
+    .roadmap-container::before {
+        content: '';
+        position: absolute;
+        bottom: -50px;
+        left: 0;
+        right: 0;
+        height: 100px;
+        background: radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0) 70%);
+        z-index: -1;
+    }
+
+    .topic-path {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 60px;
+        padding: 40px 0;
+    }
+
+    .path-line {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: #58cc02;
+        transform: translateX(-50%);
+        z-index: 0;
+    }
+
+    .topic-node {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        background: #fff;
+        border: 4px solid #58cc02;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 1;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .topic-node:nth-child(odd) {
+        margin-left: 150px;
+    }
+
+    .topic-node:nth-child(even) {
+        margin-right: 150px;
+    }
+
+    .topic-node:hover {
+        transform: scale(1.1) translateY(-5px);
+        box-shadow: 0 8px 16px rgba(88, 204, 2, 0.3);
+    }
+
+    .topic-name {
+        font-weight: bold;
+        color: #333;
+        text-align: center;
+        padding: 0 10px;
+    }
+
+    .topic-details {
+        position: absolute;
+        top: -150px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 300px;
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 2;
+    }
+
+    .topic-node:hover .topic-details {
+        opacity: 1;
+        visibility: visible;
+        top: -180px;
+    }
+
+    .topic-details h4 {
+        color: #58cc02;
+        margin-bottom: 10px;
+    }
+
+    .topic-details p {
+        color: #666;
+        margin-bottom: 15px;
+        font-size: 0.9em;
+    }
+
+    .topic-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 15px;
+    }
+
+    .topic-actions .btn {
+        padding: 8px 16px;
+        font-size: 0.9em;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .topic-actions .btn-primary {
+        background: #58cc02;
+        border: none;
+    }
+
+    .topic-actions .btn-danger {
+        background: #ff4b4b;
+        border: none;
+    }
+
+    .topic-actions .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .add-topic-button {
+        position: relative;
+        margin: 40px auto;
+        width: 80px;
+        height: 80px;
+        background-color: #fff;
+        border: 4px dashed #58cc02;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 1;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .add-topic-button:hover {
+        background-color: #f0f8f0;
+        transform: scale(1.1) translateY(-5px);
+        box-shadow: 0 8px 16px rgba(88, 204, 2, 0.3);
+    }
+
+    .add-topic-button i {
+        font-size: 2em;
+        color: #58cc02;
+    }
+
+    .completed {
+        background: #58cc02;
+        border-color: #fff;
+    }
+
+    .completed .topic-name {
+        color: #fff;
+    }
+
+    @media (max-width: 768px) {
+        .topic-node:nth-child(odd),
+        .topic-node:nth-child(even) {
+            margin-left: 0;
+            margin-right: 0;
+        }
+    }
+</style>
+
+<div class="classroom-header">
+    <h2>{{ classroom.className }}</h2>
+    <div class="classroom-info">
+        <p>Class Code: {{ classroom.classroomCode }}</p>
+        <p>Start Date: {{ classroom.startDate }}</p>
+        <p>End Date: {{ classroom.endDate }}</p>
+        <p>Instructor: {{ classroom.instructorName }}</p>
+    </div>
 </div>
 
-<a href="{% url 'create_topic' classroomID=classroom.classroomID %}" class="btn btn-primary" role="button">Create Topic</a>
-<a href="{% url 'index' %}" class="btn btn-light" role="button">Cancel</a>
-
+{% if request.user|is_instructor %}
+<div class="classroom-actions">
+    <a href="{% url 'classroom_settings' id=classroom.classroomID %}" class="btn btn-info">Classroom Settings</a>
+</div>
 {% endif %}
 
+<div class="roadmap-container">
+    <h1 class="text-center mb-5">{{ classroom.className }} Roadmap</h1>
+    
+    <div class="topic-path">
+        <div class="path-line"></div>
+        {% for topic in topics %}
+            <div class="topic-node {% if topic.completed %}completed{% endif %}" 
+                 onclick="window.location.href='{% url 'topic' classroomID=classroom.classroomID topicID=topic.topicID %}'">
+                <div class="topic-name">{{ topic.topicName }}</div>
+                <div class="topic-details">
+                    <h4>{{ topic.topicName }}</h4>
+                    <p>{{ topic.topicDescription|truncatewords:30 }}</p>
+                    {% if request.user|is_instructor %}
+                    <div class="topic-actions">
+                        <a href="{% url 'edit_topic' classroomID=classroom.classroomID topicID=topic.topicID %}" 
+                           class="btn btn-primary">Edit</a>
+                        <a href="{% url 'delete_topic' classroomID=classroom.classroomID topicID=topic.topicID %}" 
+                           class="btn btn-danger">Delete</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+        
+        {% if request.user|is_instructor %}
+        <a href="{% url 'create_topic' classroomID=classroom.classroomID %}" class="add-topic-button">
+            <i class="fas fa-plus"></i>
+        </a>
+        {% endif %}
+    </div>
+</div>
 
-
-
+<script>
+    // Add fade-out effect for topic details
+    document.querySelectorAll('.topic-node').forEach(node => {
+        let timeout;
+        
+        node.addEventListener('mouseenter', () => {
+            clearTimeout(timeout);
+            const details = node.querySelector('.topic-details');
+            details.style.opacity = '1';
+            details.style.visibility = 'visible';
+            details.style.top = '-180px';
+        });
+        
+        node.addEventListener('mouseleave', () => {
+            const details = node.querySelector('.topic-details');
+            timeout = setTimeout(() => {
+                details.style.opacity = '0';
+                details.style.visibility = 'hidden';
+                details.style.top = '-150px';
+            }, 1000); // 1 second delay before fade out
+        });
+    });
+</script>
 {% endblock %}

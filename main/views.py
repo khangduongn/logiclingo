@@ -50,7 +50,11 @@ def classroom(request, id):
 
     #if the user is in the classroom, then let them see the classroom
     if is_in_classroom(request.user, classroom):
-        return render(request, 'classroom.html', {'classroom': classroom})
+        topics = classroom.topics.all()
+        return render(request, 'classroom.html', {
+            'classroom': classroom,
+            'topics': topics
+        })
     else:
         return redirect('index')
 
@@ -284,3 +288,59 @@ def modify_exercise(request, classroomID, topicID, exerciseID):
             return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exercise.exerciseID)
 
     return render(request, 'modify_exercise.html', {'form': modifyExerciseForm, 'classroomID': classroomID, 'topicID': topicID, 'exercise': exercise})
+
+@login_required
+def edit_topic(request, classroomID, topicID):
+    if is_student(request.user):
+        return redirect('index')
+    
+    if request.method == 'POST':
+        form = TopicForm(request.POST)
+        if form.is_valid():
+            # Get form data
+            topic_name = form.cleaned_data['topicName']
+            topic_description = form.cleaned_data['topicDescription']
+            topic_note = form.cleaned_data['topicNote']
+            
+            # Validate and update topic using TopicController
+            try:
+                TopicController.modifyTopic(topicID, topic_name, topic_description, topic_note)
+                messages.success(request, 'Topic updated successfully!')
+                return redirect('topic', classroomID=classroomID, topicID=topicID)
+            except Exception as e:
+                messages.error(request, str(e))
+                return render(request, 'edit_topic.html', {
+                    'form': form,
+                    'classroomID': classroomID,
+                    'topicID': topicID
+                })
+    else:
+        # Get initial topic data
+        topic = get_object_or_404(Topic, topicID=topicID)
+        form = TopicForm(instance=topic)
+    
+    return render(request, 'edit_topic.html', {
+        'form': form,
+        'classroomID': classroomID,
+        'topicID': topicID
+    })
+
+@login_required
+def delete_topic(request, classroomID, topicID):
+    if is_student(request.user):
+        return redirect('index')
+    
+    if request.method == 'POST':
+        # Delete topic using TopicController
+        try:
+            TopicController.deleteTopic(topicID)
+            messages.success(request, 'Topic deleted successfully!')
+            return redirect('classroom', id=classroomID)
+        except Exception as e:
+            messages.error(request, str(e))
+            return redirect('topic', classroomID=classroomID, topicID=topicID)
+    
+    return render(request, 'delete_topic.html', {
+        'classroomID': classroomID,
+        'topicID': topicID
+    })
