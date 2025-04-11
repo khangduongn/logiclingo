@@ -166,6 +166,10 @@ def confirm_join_classroom(request):
 @login_required
 def create_topic(request, classroomID):
 
+    if is_student(request.user):
+        return redirect('index')
+    
+    classroom = get_object_or_404(Classroom, classroomID=classroomID)
     form = TopicForm()  
 
     if request.method == 'POST':
@@ -175,7 +179,7 @@ def create_topic(request, classroomID):
             topicDescription = form.cleaned_data['topicDescription']
             topicNote = form.cleaned_data['topicNote']
 
-            topic = TopicController.createNewTopic(topicName, topicDescription, topicNote)
+            topic = TopicController.createNewTopic(topicName, topicDescription, topicNote, classroom)
 
             if topic:
                 return redirect('topic', classroomID=classroomID, topicID=topic.topicID)
@@ -190,11 +194,12 @@ def topic(request, classroomID, topicID):
     return render(request, 'topic.html', {'topic': topic, 'classroomID': classroomID})
     
   
-def create_question(request, classroomID):
+def create_question(request, classroomID, topicID, exerciseID):
     # If the user is a student, redirect them back
     if is_student(request.user):
         return redirect('index')
     
+    exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
     form = QuestionForm()  
 
     if request.method == 'POST':
@@ -204,23 +209,23 @@ def create_question(request, classroomID):
             questionPrompt = form.cleaned_data['questionPrompt']
             correctAnswer = form.cleaned_data['correctAnswer']
 
-            question = QuestionController.createNewQuestion(questionType, questionPrompt, correctAnswer)
+            question = QuestionController.createNewQuestion(questionType, questionPrompt, correctAnswer, exercise)
 
             if question:
-                return redirect('question', classroomID=classroomID, questionID=question.questionID)
+                return redirect('question', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID, questionID=question.questionID)
 
-    return render(request, 'create_question.html', {'form': form, 'classroomID': classroomID})
+    return render(request, 'create_question.html', {'form': form, 'classroomID': classroomID, 'topicID': topicID, 'exerciseID': exerciseID})
 
 
 @login_required
-def question(request, classroomID, questionID):
+def question(request, classroomID, topicID, exerciseID, questionID):
 
     question = get_object_or_404(Question, questionID=questionID)
-    return render(request, 'question.html', {'question': question, 'classroomID': classroomID})
+    return render(request, 'question.html', {'question': question, 'classroomID': classroomID, 'topicID': topicID, 'exerciseID': exerciseID})
     
 
 @login_required
-def modify_question(request, classroomID, questionID):
+def modify_question(request, classroomID, topicID, exerciseID, questionID):
 
     if is_student(request.user): 
         return redirect('index')
@@ -230,38 +235,43 @@ def modify_question(request, classroomID, questionID):
         modifyQuestionForm = ModifyQuestionForm(request.POST, instance=question)
         if modifyQuestionForm.is_valid():
             modifyQuestionForm.save()
-            return redirect('question', classroomID=classroomID, questionID=question.questionID)
+            return redirect('question', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID, questionID=question.questionID)
 
-    return render(request, 'modify_question.html', {'form': modifyQuestionForm, 'classroomID': classroomID, 'question': question})
+    return render(request, 'modify_question.html', {'form': modifyQuestionForm, 'classroomID': classroomID, 'topicID': topicID, 'exerciseID': exerciseID, 'question': question})
 
 @login_required
-def create_exercise(request):
+def create_exercise(request, classroomID, topicID):
     if is_student(request.user):
         return redirect('index')
+    
+    topic = get_object_or_404(Topic, topicID=topicID)
+    form = ExerciseForm()
 
     if request.method == 'POST':
         form = ExerciseForm(request.POST)
+        if form.is_valid():
+            
+            exerciseName = form.cleaned_data['exerciseName']
+            exerciseDescription = form.cleaned_data['exerciseDescription']
 
-    if form.is_valid():
-        exercise = form.save(commit=False)
-        exercise.created_by = request.user
-        exercise.save()
-        return redirect('exercise_detail', exerciseID=exercise.exerciseID)
-    else:
-        form = ExerciseForm()
+            exercise = ExerciseController.createNewExercise(exerciseName, exerciseDescription, topic)
+
+            return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exercise.exerciseID)
+        else:
+            form = ExerciseForm()
     
-    return render(request, 'create_exercise.html', {'form': form})
+    return render(request, 'create_exercise.html', {'form': form, 'classroomID': classroomID, 'topicID': topicID})
 
 
 @login_required
-def exercise(request, classroomID, exerciseID):
+def exercise(request, classroomID, topicID, exerciseID):
 
     exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
-    return render(request, 'exercise.html', {'exercise': exercise, 'classroomID': classroomID})
+    return render(request, 'exercise.html', {'exercise': exercise, 'classroomID': classroomID, 'topicID': topicID})
     
 
 @login_required
-def modify_exercise(request, classroomID, exerciseID):
+def modify_exercise(request, classroomID, topicID, exerciseID):
 
     if is_student(request.user): 
         return redirect('index')
@@ -271,6 +281,6 @@ def modify_exercise(request, classroomID, exerciseID):
         modifyExerciseForm = ModifyExerciseForm(request.POST, instance=exercise)
         if modifyExerciseForm.is_valid():
             modifyExerciseForm.save()
-            return redirect('exercise', classroomID=classroomID, exerciseID=exercise.exerciseID)
+            return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exercise.exerciseID)
 
-    return render(request, 'modify_exercise.html', {'form': modifyExerciseForm, 'classroomID': classroomID, 'exercise': exercise})
+    return render(request, 'modify_exercise.html', {'form': modifyExerciseForm, 'classroomID': classroomID, 'topicID': topicID, 'exercise': exercise})

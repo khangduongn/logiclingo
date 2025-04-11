@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %} Exercise {{ exercise.exerciseID }} {% endblock %}
+
+{% block content %} 
+
+<div>Exercise Name: {{ exercise.exerciseName}} </div>
+<div>Exercise Description: {{ exercise.exerciseDescription }}</div>
+
+<div class="questions">
+    <h3>Questions</h3>
+    {% if exercise.questions.all %}
+        <ul class="question-list">
+            {% for question in exercise.questions.all %}
+                <li>
+                    <a href="{% url 'question' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID questionID=question.questionID%}">
+                        {{ question.questionPrompt }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>This exercise doesn't have any questions yet.</p>
+    {% endif %}
+</div>
+
+<a href="{% url 'create_question' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-primary" role="button">Create Question</a>
+<a href="{% url 'modify_exercise' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-info" role="button">Edit</a>
+<a href="{% url 'topic' classroomID=classroomID topicID=topicID %}" class="btn btn-light" role="button">Cancel</a>
+{% endblock content %} 

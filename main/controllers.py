@@ -1,4 +1,4 @@
-from .models import Classroom, Question, Topic
+from .models import Classroom, Question, Topic, Exercise
 from django.shortcuts import get_object_or_404
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
@@ -29,7 +29,7 @@ class ClassroomController:
 class TopicController:
 
     @staticmethod
-    def createNewTopic(topicName: str, topicDescription: str, topicNote: str):
+    def createNewTopic(topicName: str, topicDescription: str, topicNote: str, classroom):
         
         topicName = topicName.strip()
         topicDescription = topicDescription.strip()
@@ -40,12 +40,33 @@ class TopicController:
             return Topic.objects.create(
                 topicName=topicName,
                 topicDescription=topicDescription,
-                topicNote=topicNote)
+                topicNote=topicNote, 
+                classroom=classroom
+            )
     
+class ExerciseController:
+
+    @staticmethod
+    def createNewExercise(exerciseName: str, exerciseDescription: str, topic):
+        
+        exerciseName = exerciseName.strip()
+        exerciseDescription = exerciseDescription.strip()
+
+        #check if the exercise name and description are not empty
+        if exerciseName and exerciseDescription:
+            return Exercise.objects.create(
+                exerciseName=exerciseName,
+                exerciseDescription=exerciseDescription, 
+                topic=topic
+            )
+
+        else:
+            return None
+        
 class QuestionController:
 
     @staticmethod
-    def createNewQuestion(questionType: str, questionPrompt: str, correctAnswer: str):
+    def createNewQuestion(questionType: str, questionPrompt: str, correctAnswer: str, exercise):
         
         questionPrompt = questionPrompt.strip()
         correctAnswer = correctAnswer.strip()
@@ -55,7 +76,8 @@ class QuestionController:
             return Question.objects.create(
                 questionType=questionType,
                 questionPrompt=questionPrompt,
-                correctAnswer=correctAnswer
+                correctAnswer=correctAnswer,
+                exercise=exercise
             )
 
         else:

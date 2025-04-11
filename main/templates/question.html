@@ -8,6 +8,6 @@
 <div>Question Type: {{ question.get_questionType_display}} </div>
 <div>Prompt: {{ question.questionPrompt}} </div>
 <div>Correct Answer: {{ question.correctAnswer }}</div>
-<a href="{% url 'modify_question' classroomID=classroomID questionID=question.questionID %}" class="btn btn-info" role="button">Edit</a>
-<a href="{% url 'classroom' id=classroomID %}" class="btn btn-light" role="button">Cancel</a>
+<a href="{% url 'modify_question' classroomID=classroomID topicID=topicID exerciseID=exerciseID questionID=question.questionID %}" class="btn btn-info" role="button">Edit</a>
+<a href="{% url 'exercise' classroomID=classroomID topicID=topicID exerciseID=exerciseID %}" class="btn btn-light" role="button">Cancel</a>
 {% endblock content %} 

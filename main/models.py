@@ -118,12 +118,14 @@ class Topic(models.Model):
     topicName = models.TextField(blank=False)
     topicDescription = models.TextField(blank=False)
     topicNote = models.TextField(blank=False)
+    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name='topics')
+
 
 class Exercise(models.Model):
-    exerciseID = models.CharField(max_length = 10, primary_key = True)
+    exerciseID = models.AutoField(primary_key=True)
     exerciseName = models.CharField(max_length = 200)
     exerciseDescription = models.TextField()
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='exercises')
   
     def __str__(self):
         return self.exerciseName
@@ -140,10 +142,10 @@ class Question(models.Model):
     ]
     
     questionID = models.AutoField(primary_key=True)
-    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='questions')
     questionType = models.CharField(max_length=100, choices=QUESTION_TYPES, default='multiple_choice', blank=False)
     questionPrompt = models.TextField(blank=False)
     correctAnswer = models.TextField(blank=False)
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='questions')
 
     def __str__(self):
         return self.questionPrompt

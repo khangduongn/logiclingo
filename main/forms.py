@@ -71,7 +71,7 @@ class ModifyQuestionForm(forms.ModelForm):
 class ExerciseForm(forms.ModelForm):
     class Meta:
         model = Exercise
-        fields = ['exerciseID', 'exerciseName', 'exerciseDescription']
+        fields = ['exerciseName', 'exerciseDescription']
 
 class ModifyExerciseForm(forms.ModelForm):
     class Meta:

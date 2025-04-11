@@ -10,5 +10,5 @@
     <button type="submit">Save</button>
 </form>
 
-<a href="{% url 'question' classroomID=classroomID questionID=question.questionID %}" class="btn btn-light">Cancel</a>
+<a href="{% url 'question' classroomID=classroomID topicID=topicID exerciseID=exerciseID questionID=question.questionID %}" class="btn btn-light">Cancel</a>
 {% endblock %}
