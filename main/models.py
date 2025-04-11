@@ -113,6 +113,12 @@ class Classroom(models.Model):
     def __str__(self):
         return self.className
 
+class Topic(models.Model):
+    topicID = models.AutoField(primary_key=True)
+    topicName = models.TextField(blank=False)
+    topicDescription = models.TextField(blank=False)
+    topicNote = models.TextField(blank=False)
+
 class Exercise(models.Model):
     exerciseID = models.CharField(max_length = 10, primary_key = True)
     exerciseName = models.CharField(max_length = 200)
@@ -130,14 +136,20 @@ class Question(models.Model):
         ('ordering', 'Ordering'),
         ('translating', 'Translating'),
         ('multiple_choice', 'Multiple Choice'),
-
+        ('true_false', 'True/False'),
     ]
-
-    questionID = models.CharField(max_length = 100, primary_key = True)
+    
+    questionID = models.AutoField(primary_key=True)
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='questions')
-    questionType = models.CharField(max_length=100, choices=QUESTION_TYPES)
-    questionPrompt = models.TextField()
-    correctAnswer = models.TextField()
+    questionType = models.CharField(max_length=100, choices=QUESTION_TYPES, default='multiple_choice', blank=False)
+    questionPrompt = models.TextField(blank=False)
+    correctAnswer = models.TextField(blank=False)
 
     def __str__(self):
         return self.questionPrompt
+
+class Answer(models.Model):
+    answerID = models.AutoField(primary_key=True)
+    question = models.ForeignKey('Question', on_delete=models.CASCADE, related_name="answers")
+    answer = models.TextField(blank=False)
+    correct = models.BooleanField(default=False)
