@@ -1,6 +1,5 @@
 from django import forms
 from .models import *
-
 from django.core.validators import MinLengthValidator
 
 class ClassroomForm(forms.ModelForm):
@@ -68,3 +67,13 @@ class ModifyQuestionForm(forms.ModelForm):
     class Meta:
         model = Question
         fields = ['questionType', 'questionPrompt', 'correctAnswer']
+
+class ExerciseForm(forms.ModelForm):
+    class Meta:
+        model = Exercise
+        fields = ['exerciseID', 'exerciseName', 'exerciseDescription']
+
+class ModifyExerciseForm(forms.ModelForm):
+    class Meta:
+        model = Exercise
+        fields = ['exerciseName', 'exerciseDescription']
