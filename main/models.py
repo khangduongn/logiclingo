@@ -113,6 +113,7 @@ class Classroom(models.Model):
     def __str__(self):
         return self.className
 
+
 class Topic(models.Model):
     topicID = models.AutoField(primary_key=True)
     topicName = models.TextField(blank=False)
@@ -155,3 +156,15 @@ class Answer(models.Model):
     question = models.ForeignKey('Question', on_delete=models.CASCADE, related_name="answers")
     answer = models.TextField(blank=False)
     correct = models.BooleanField(default=False)
+
+class InvitedStudent(models.Model):
+    id = models.AutoField(primary_key=True)
+    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name='invited_students')
+    email = models.EmailField(max_length=100, blank=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('classroom', 'email')
+        
+    def __str__(self):
+        return f"{self.email} - {self.classroom.className}"

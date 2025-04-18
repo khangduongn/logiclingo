@@ -1,38 +1,10 @@
 {% extends "base.html" %}
 {% load custom_filters %}
 
-{% block title %}{{ classroom.className }}{% endblock %}
+{% block title %}{{ classroom.className }} Roadmap{% endblock %}
 
 {% block content %}
 <style>
-    .classroom-header {
-        background-color: #f8f9fa;
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-    }
-
-    .classroom-header h2 {
-        color: #333;
-        margin-bottom: 15px;
-    }
-
-    .classroom-info {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 10px;
-    }
-
-    .classroom-info p {
-        margin: 5px 0;
-        color: #666;
-    }
-
-    .classroom-actions {
-        margin-bottom: 20px;
-    }
-
-    /* Roadmap Styles */
     .roadmap-container {
         max-width: 1200px;
         margin: 40px auto;
@@ -215,22 +187,6 @@
     }
 </style>
 
-<div class="classroom-header">
-    <h2>{{ classroom.className }}</h2>
-    <div class="classroom-info">
-        <p>Class Code: {{ classroom.classroomCode }}</p>
-        <p>Start Date: {{ classroom.startDate }}</p>
-        <p>End Date: {{ classroom.endDate }}</p>
-        <p>Instructor: {{ classroom.instructorName }}</p>
-    </div>
-</div>
-
-{% if request.user|is_instructor %}
-<div class="classroom-actions">
-    <a href="{% url 'classroom_settings' id=classroom.classroomID %}" class="btn btn-info">Classroom Settings</a>
-</div>
-{% endif %}
-
 <div class="roadmap-container">
     <h1 class="text-center mb-5">{{ classroom.className }} Roadmap</h1>
     
@@ -286,4 +242,4 @@
         });
     });
 </script>
-{% endblock %}
+{% endblock %} 

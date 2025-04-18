@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Edit Topic{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Topic</h2>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group mb-3">
+            <label for="id_topicName">Title</label>
+            <input type="text" class="form-control" id="id_topicName" name="topicName" value="{{ form.topicName.value }}" maxlength="100" required>
+            {% if form.topicName.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.topicName.errors }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="id_topicDescription">Description</label>
+            <textarea class="form-control" id="id_topicDescription" name="topicDescription" rows="4" maxlength="500" required>{{ form.topicDescription.value }}</textarea>
+            {% if form.topicDescription.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.topicDescription.errors }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="id_topicNote">Note</label>
+            <textarea class="form-control" id="id_topicNote" name="topicNote" rows="3" maxlength="300">{{ form.topicNote.value }}</textarea>
+            {% if form.topicNote.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.topicNote.errors }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="{% url 'topic' classroomID=classroomID topicID=topicID %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
