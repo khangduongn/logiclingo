@@ -44,6 +44,34 @@ class TopicController:
                 classroom=classroom
             )
     
+    @staticmethod
+    def modifyTopic(topicID: int, topicName: str, topicDescription: str, topicNote: str):
+        # Get the topic object
+        topic = get_object_or_404(Topic, topicID=topicID)
+        
+        # Validate inputs
+        topicName = topicName.strip()
+        topicDescription = topicDescription.strip()
+        topicNote = topicNote.strip()
+        
+        # Check if the topic name, desc, and note are not empty
+        if not (topicName and topicDescription and topicNote):
+            raise ValueError("Topic name, description, and note cannot be empty.")
+        
+        # Update the topic fields
+        topic.topicName = topicName
+        topic.topicDescription = topicDescription
+        topic.topicNote = topicNote
+        topic.save()
+        
+        return topic
+
+    @staticmethod
+    def deleteTopic(topicID: int):
+        topic = get_object_or_404(Topic, topicID=topicID)
+        topic.delete()
+        return True
+    
 class ExerciseController:
 
     @staticmethod

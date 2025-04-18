@@ -3,22 +3,67 @@
 
 {% block content %} 
 
+<h2>Classroom Access Settings</h2>
+<form method="POST" action="{% url 'classroom_settings' id=classroomID %}">
+    {% csrf_token %}
+    <input type="hidden" name="form_type" value="access_settings">
+    <div class="form-group">
+        <label>Who can join the classroom?</label>
+        <div class="radio">
+            <label>
+                <input type="radio" name="open" value="true" {% if classroom.open %}checked{% endif %}>
+                Anyone with class code
+            </label>
+        </div>
+        <div class="radio">
+            <label>
+                <input type="radio" name="open" value="false" {% if not classroom.open %}checked{% endif %}>
+                Only invited students
+            </label>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Save Settings</button>
+</form>
+
+<h2>Invite Students</h2>
 <form method="POST">
     {% csrf_token %}
-    <label for="student_emails">Emails of Students</label><br>
+    <input type="hidden" name="form_type" value="invite_students">
+    <label for="student_emails">Emails of Students (comma separated)</label><br>
     <input type="text" name="student_emails" required><br>
-    <button type="submit">Invite Students</button>
+    <button type="submit" class="btn btn-primary">Invite Students</button>
 </form>
 
-
+<h2>Invite Instructors</h2>
 <form method="POST">
     {% csrf_token %}
-    <label for="instructor_emails">Emails of Instructors</label><br>
+    <input type="hidden" name="form_type" value="invite_instructors">
+    <label for="instructor_emails">Emails of Instructors (comma separated)</label><br>
     <input type="text" name="instructor_emails" required><br>
-    <button type="submit">Invite Instructors</button>
+    <button type="submit" class="btn btn-primary">Invite Instructors</button>
 </form>
+
+{% if invited_students %}
+<h2>Invited Students</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Invited On</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for student in invited_students %}
+        <tr>
+            <td>{{ student.email }}</td>
+            <td>{{ student.created_at }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
 <div>{{ message }}</div>
 <a href="{% url 'classroom' id=classroomID %}" class="btn btn-light" role="button">Cancel</a>
-
 
 {% endblock %}

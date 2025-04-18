@@ -6,8 +6,8 @@
     <h2>Delete Topic</h2>
     <div class="alert alert-danger">
         <h4>Are you sure you want to delete this topic?</h4>
-        <p><strong>Title:</strong> {{ topic.title }}</p>
-        <p><strong>Description:</strong> {{ topic.description }}</p>
+        <p><strong>Title:</strong> {{ topic.topicName }}</p>
+        <p><strong>Description:</strong> {{ topic.topicDescription }}</p>
         <p class="mb-0">This action cannot be undone.</p>
     </div>
     
@@ -17,4 +17,4 @@
         <a href="{% url 'topic' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
-{% endblock %} 
+{% endblock %}

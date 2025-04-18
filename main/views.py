@@ -98,21 +98,54 @@ def classroom_settings(request, id):
     if is_student(request.user) or not is_in_classroom(request.user, classroom):
         return redirect('index')
 
-    if request.method == 'POST':
-
-        student_emails = request.POST.get('student_emails')
-        instructor_emails = request.POST.get('instructor_emails')
-        invalid_emails = []
-
-        if student_emails:
-            invalid_emails = ClassroomController.inviteUsers(student_emails, id, True)
-        else:
-            invalid_emails = ClassroomController.inviteUsers(instructor_emails, id, False)
-            
-        error = "The following email addresses were unable to be reached: " + ", ".join(invalid_emails)
-        return render(request, 'classroom_settings.html', {'message': 'Emails Sent! ' + error, 'classroomID': id})
+    message = ''
     
-    return render(request, 'classroom_settings.html', {'message': '', 'classroomID': id})
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type', '')
+        
+        if form_type == 'access_settings':
+            # Handle classroom access settings
+            open_value = request.POST.get('open') == 'true'
+            classroom.open = open_value
+            classroom.save()
+            message = 'Classroom access settings updated successfully!'
+            
+        elif form_type == 'invite_students':
+            # Handle student invitations
+            student_emails = request.POST.get('student_emails')
+            if student_emails:
+                invalid_emails = ClassroomController.inviteUsers(student_emails, id, True)
+                
+                # Add emails to InvitedStudent model
+                emails = [email.strip() for email in student_emails.split(',')]
+                for email in emails:
+                    if email and email not in invalid_emails:
+                        InvitedStudent.objects.get_or_create(classroom=classroom, email=email)
+                
+                if invalid_emails:
+                    message = "Emails Sent! The following email addresses were unable to be reached: " + ", ".join(invalid_emails)
+                else:
+                    message = "Invitations sent successfully!"
+        
+        elif form_type == 'invite_instructors':
+            # Handle instructor invitations
+            instructor_emails = request.POST.get('instructor_emails')
+            if instructor_emails:
+                invalid_emails = ClassroomController.inviteUsers(instructor_emails, id, False)
+                if invalid_emails:
+                    message = "Emails Sent! The following email addresses were unable to be reached: " + ", ".join(invalid_emails)
+                else:
+                    message = "Invitations sent successfully!"
+    
+    # Get list of invited students
+    invited_students = InvitedStudent.objects.filter(classroom=classroom).order_by('-created_at')
+    
+    return render(request, 'classroom_settings.html', {
+        'message': message, 
+        'classroomID': id,
+        'classroom': classroom,
+        'invited_students': invited_students
+    })
 
 @login_required
 def join_classroom(request):
@@ -120,10 +153,25 @@ def join_classroom(request):
         if 'confirm' in request.POST:
             classroom_id = request.POST.get('classroom_id')
             classroom = get_object_or_404(Classroom, classroomID=classroom_id)
+            
+            # Check access restrictions for students
+            if is_student(request.user) and not classroom.open:
+                # Check if the student is invited
+                invited = InvitedStudent.objects.filter(
+                    classroom=classroom, 
+                    email=request.user.email
+                ).exists()
+                
+                if not invited:
+                    messages.error(request, "You are not invited to this classroom.")
+                    return redirect('index')
+            
+            # Add user to classroom
             if is_student(request.user):
                 classroom.students.add(request.user.student)
             else:
                 classroom.instructors.add(request.user.instructor)
+                
             messages.success(request, f"Welcome to {classroom.instructorName}'s classroom!")
             return redirect('index')
         
@@ -132,6 +180,19 @@ def join_classroom(request):
             classroom_code = form.cleaned_data['classroom_code']
             try:
                 classroom = Classroom.objects.get(classroomCode=classroom_code)
+                
+                # Check access restrictions for students
+                if is_student(request.user) and not classroom.open:
+                    # Check if the student is invited
+                    invited = InvitedStudent.objects.filter(
+                        classroom=classroom, 
+                        email=request.user.email
+                    ).exists()
+                    
+                    if not invited:
+                        form.add_error('classroom_code', "You are not invited to this classroom.")
+                        return render(request, 'join_classroom.html', {'form': form})
+                
                 confirm_form = ConfirmJoinClassroomForm(initial={
                     'classroom_id': classroom.classroomID,
                     'confirm': 'yes'
@@ -156,6 +217,18 @@ def confirm_join_classroom(request):
         return redirect('index')
     
     classroom = get_object_or_404(Classroom, classroomCode=classroom_code)
+    
+    # Check access restrictions for students
+    if is_student(request.user) and not classroom.open:
+        # Check if the student is invited
+        invited = InvitedStudent.objects.filter(
+            classroom=classroom, 
+            email=request.user.email
+        ).exists()
+        
+        if not invited:
+            messages.error(request, "You are not invited to this classroom.")
+            return redirect('index')
     
     form = ConfirmJoinClassroomForm(initial={
         'classroom_id': classroom.classroomID,
@@ -330,6 +403,9 @@ def delete_topic(request, classroomID, topicID):
     if is_student(request.user):
         return redirect('index')
     
+    # Get the topic object
+    topic = get_object_or_404(Topic, topicID=topicID)
+    
     if request.method == 'POST':
         # Delete topic using TopicController
         try:
@@ -342,5 +418,6 @@ def delete_topic(request, classroomID, topicID):
     
     return render(request, 'delete_topic.html', {
         'classroomID': classroomID,
-        'topicID': topicID
+        'topicID': topicID,
+        'topic': topic  # Pass the topic object to the template
     })
