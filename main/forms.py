@@ -77,3 +77,9 @@ class ModifyExerciseForm(forms.ModelForm):
     class Meta:
         model = Exercise
         fields = ['exerciseName', 'exerciseDescription']
+
+class ImportQuestionForm(forms.Form):
+    csv_file = forms.FileField(label="Upload CSV file")
+
+class ImportExerciseForm(forms.Form):
+    csv_file = forms.FileField(label="Upload CSV file")

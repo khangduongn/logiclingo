@@ -25,6 +25,7 @@
 </div>
 
 <a href="{% url 'create_question' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-primary" role="button">Create Question</a>
+<a href="{% url 'import_questions' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-primary" role="button">Import Question</a>
 <a href="{% url 'modify_exercise' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-info" role="button">Edit</a>
 <a href="{% url 'topic' classroomID=classroomID topicID=topicID %}" class="btn btn-light" role="button">Cancel</a>
 {% endblock content %} 

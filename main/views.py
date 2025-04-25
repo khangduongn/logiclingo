@@ -5,6 +5,7 @@ from django.contrib.auth import login
 from django.contrib import messages
 from .controllers import *
 from django.contrib.auth.decorators import login_required
+import csv, io
 
 
 def is_student(user):
@@ -420,4 +421,80 @@ def delete_topic(request, classroomID, topicID):
         'classroomID': classroomID,
         'topicID': topicID,
         'topic': topic  # Pass the topic object to the template
+    })
+
+@login_required
+def import_questions(request, classroomID, topicID, exerciseID):
+    if is_student(request.user):
+        return redirect('index')
+    exercise = get_object_or_404(Exercise, exerciseID = exerciseID)
+    importQuestionForm = ImportQuestionForm()
+    if request.method == 'POST':
+        importQuestionForm = ImportQuestionForm(request.POST, request.FILES);
+        if importQuestionForm.is_valid():
+            file = request.FILES['csv_file']
+            print(f"Uploaded file name: {file.name}")
+            try:
+                csv_file = file.read().decode('utf-8').splitlines()
+                reader = csv.DictReader(csv_file)
+
+                for row_num, row in enumerate(reader, start=1):
+                    questionType = row.get("questionType")
+                    questionPrompt = row.get("questionPrompt")
+                    correctAnswer = row.get("correctAnswer")
+
+                    if questionType and questionPrompt and correctAnswer:
+                        new_question = QuestionController.createNewQuestion(questionType.strip(), questionPrompt.strip(), correctAnswer.strip(), exercise)
+                        print(f"Row {row_num}: {new_question.id}")
+                    else:
+                        print(f"Row {row_num}: missing values")
+                
+                messages.success(request, "Questions successfully imported.")
+                return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID)
+
+            except Exception as e:
+                messages.error(request, "Error reading CSV file")
+                return redirect(request.path)
+    else:
+        print(importQuestionForm.errors)
+        messages.error(request, "Invalid form data")
+    return render(request, 'import_questions.html', {
+        'form': importQuestionForm,
+        'classroomID': classroomID,
+        'topicID': topicID,
+        'exerciseID': exerciseID
+    })
+
+@login_required
+def import_exercises(request, classroomID, topicID):
+    if is_student(request.user):
+        return redirect('index')
+    topic = get_object_or_404(Topic, topicID = topicID)
+    importExerciseForm = ImportExerciseForm()
+
+    if request.method == 'POST':
+        importExerciseForm = ImportExerciseForm(request.POST, request.FILES)
+        if importExerciseForm.is_valid():
+            file = request.FILES['csv_file']
+            try:
+                csv_file = file.read().decode('utf-8').splitlines()
+                reader = csv.DictReader(csv_file)
+
+                for row in reader:
+                    exerciseName = row.get("exerciseName")
+                    exerciseDescription = row.get("exerciseDescription")
+
+                    if exerciseName and exerciseDescription:
+                        Exercise.objects.create(exerciseName=exerciseName, exerciseDescription = exerciseDescription, topic=topic)
+                    
+                messages.success(request, "Exercise successfully imported")
+                return redirect('topic', classroomID = classroomID, topicID = topicID)
+            except Exception as e:
+                messages.error(request, "Error reading CSV file")
+                return redirect(request.path)
+    
+    return render(request, 'import_exercises.html', {
+        'form': importExerciseForm,
+        'classroomID': classroomID,
+        'topicID': topicID
     })

@@ -22,4 +22,6 @@ urlpatterns = [
     path('classroom/<int:classroomID>/topic/<int:topicID>/create_exercise/', views.create_exercise, name='create_exercise'),
     path('classroom/<int:classroomID>/topic/<int:topicID>/exercise/<int:exerciseID>/', views.exercise, name='exercise'),
     path('classroom/<int:classroomID>/topic/<int:topicID>/exercise/<int:exerciseID>/modify/', views.modify_exercise, name='modify_exercise'),
+    path('classroom/<int:classroomID>/topic/<int:topicID>/exercise/<int:exerciseID>/import_questions/', views.import_questions, name='import_questions'),
+    path('classroom/<int:classroomID>/topic/<int:topicID>/import_exercises/', views.import_exercises, name='import_exercises'),
 ]
