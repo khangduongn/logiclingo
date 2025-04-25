@@ -435,24 +435,23 @@ def import_questions(request, classroomID, topicID, exerciseID):
             file = request.FILES['csv_file']
             print(f"Uploaded file name: {file.name}")
             try:
-                csv_file = file.read().decode('utf-8').splitlines()
-                reader = csv.DictReader(csv_file)
+                csv_file = file.read().decode('utf-8')
+                io_string = io.StringIO(csv_file)
+                reader = csv.DictReader(io_string)
 
-                for row_num, row in enumerate(reader, start=1):
+                for row in reader:
                     questionType = row.get("questionType")
                     questionPrompt = row.get("questionPrompt")
                     correctAnswer = row.get("correctAnswer")
 
                     if questionType and questionPrompt and correctAnswer:
-                        new_question = QuestionController.createNewQuestion(questionType.strip(), questionPrompt.strip(), correctAnswer.strip(), exercise)
-                        print(f"Row {row_num}: {new_question.id}")
-                    else:
-                        print(f"Row {row_num}: missing values")
+                        QuestionController.createNewQuestion(questionType.strip(), questionPrompt.strip(), correctAnswer.strip(), exercise)
                 
                 messages.success(request, "Questions successfully imported.")
                 return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID)
 
             except Exception as e:
+                print(f"Error: {e}")
                 messages.error(request, "Error reading CSV file")
                 return redirect(request.path)
     else:
