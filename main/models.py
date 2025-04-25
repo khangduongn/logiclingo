@@ -146,7 +146,10 @@ class Question(models.Model):
     questionType = models.CharField(max_length=100, choices=QUESTION_TYPES, default='multiple_choice', blank=False)
     questionPrompt = models.TextField(blank=False)
     correctAnswer = models.TextField(blank=False)
-    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='questions')
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='questions', null=True, blank=True)
+    created_by = models.ForeignKey(Instructor, on_delete=models.CASCADE, related_name='created_questions', null=True)
+    is_saved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.questionPrompt

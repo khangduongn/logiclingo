@@ -13,6 +13,7 @@ urlpatterns = [
     path('classroom/<int:id>/settings', views.classroom_settings, name='classroom_settings'),
     path('confirm-join/', views.confirm_join_classroom, name='confirm_join_classroom'),
     path('classroom/<int:classroomID>/create_topic/', views.create_topic, name='create_topic'),
+    path('classroom/<int:classroomID>/import_topics/', views.import_topics, name='import_topics'),
     path('classroom/<int:classroomID>/topic/<int:topicID>/', views.topic, name='topic'),
     path('classroom/<int:classroomID>/topic/<int:topicID>/edit/', views.edit_topic, name='edit_topic'),
     path('classroom/<int:classroomID>/topic/<int:topicID>/delete/', views.delete_topic, name='delete_topic'),
@@ -22,4 +23,7 @@ urlpatterns = [
     path('classroom/<int:classroomID>/topic/<int:topicID>/create_exercise/', views.create_exercise, name='create_exercise'),
     path('classroom/<int:classroomID>/topic/<int:topicID>/exercise/<int:exerciseID>/', views.exercise, name='exercise'),
     path('classroom/<int:classroomID>/topic/<int:topicID>/exercise/<int:exerciseID>/modify/', views.modify_exercise, name='modify_exercise'),
+    path('classroom/<int:classroomID>/save_question/', views.save_question, name='save_question'),
+    path('classroom/<int:classroomID>/saved_questions/', views.saved_questions, name='saved_questions'),
+    path('classroom/<int:classroomID>/question/<int:questionID>/add_to_exercise/', views.add_question_to_exercise, name='add_question_to_exercise'),
 ]

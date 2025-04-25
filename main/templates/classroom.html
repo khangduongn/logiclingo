@@ -228,6 +228,7 @@
 {% if request.user|is_instructor %}
 <div class="classroom-actions">
     <a href="{% url 'classroom_settings' id=classroom.classroomID %}" class="btn btn-info">Classroom Settings</a>
+    <a href="{% url 'import_topics' classroomID=classroom.classroomID %}" class="btn btn-success">Import Topics from CSV</a>
 </div>
 {% endif %}
 

@@ -421,3 +421,132 @@ def delete_topic(request, classroomID, topicID):
         'topicID': topicID,
         'topic': topic  # Pass the topic object to the template
     })
+
+@login_required
+def save_question(request, classroomID):
+    """View for saving a question without associating it with an exercise"""
+    if is_student(request.user):
+        return redirect('index')
+    
+    form = SaveQuestionForm()
+    
+    if request.method == 'POST':
+        form = SaveQuestionForm(request.POST)
+        if form.is_valid():
+            question_type = form.cleaned_data['questionType']
+            question_prompt = form.cleaned_data['questionPrompt']
+            correct_answer = form.cleaned_data['correctAnswer']
+            
+            # Create a saved question using the controller
+            question = QuestionController.saveQuestion(
+                question_type, 
+                question_prompt, 
+                correct_answer, 
+                request.user.instructor
+            )
+            
+            if question:
+                messages.success(request, 'Question saved successfully!')
+                return redirect('saved_questions', classroomID=classroomID)
+            else:
+                messages.error(request, 'Failed to save question.')
+    
+    return render(request, 'save_question.html', {
+        'form': form,
+        'classroomID': classroomID
+    })
+
+@login_required
+def saved_questions(request, classroomID):
+    """View for displaying all saved questions"""
+    if is_student(request.user):
+        return redirect('index')
+    
+    classroom = get_object_or_404(Classroom, classroomID=classroomID)
+    saved_questions = QuestionController.getSavedQuestions(request.user.instructor)
+    
+    return render(request, 'saved_questions.html', {
+        'classroom': classroom,
+        'saved_questions': saved_questions,
+        'classroomID': classroomID
+    })
+
+@login_required
+def add_question_to_exercise(request, classroomID, questionID):
+    """View for adding a saved question to an exercise"""
+    if is_student(request.user):
+        return redirect('index')
+    
+    question = get_object_or_404(Question, questionID=questionID, created_by=request.user.instructor)
+    form = AddQuestionToExerciseForm(classroom_id=classroomID)
+    
+    if request.method == 'POST':
+        form = AddQuestionToExerciseForm(request.POST, classroom_id=classroomID)
+        if form.is_valid():
+            exercise = form.cleaned_data['exercise']
+            
+            # Add the question to the selected exercise
+            new_question = QuestionController.addQuestionToExercise(questionID, exercise.exerciseID)
+            
+            if new_question:
+                messages.success(request, 'Question added to exercise successfully!')
+                return redirect('exercise', classroomID=classroomID, topicID=exercise.topic.topicID, exerciseID=exercise.exerciseID)
+            else:
+                messages.error(request, 'Failed to add question to exercise.')
+    
+    return render(request, 'add_question_to_exercise.html', {
+        'form': form,
+        'question': question,
+        'classroomID': classroomID
+    })
+
+@login_required
+def import_topics(request, classroomID):
+    """View for importing topics from a CSV file with optional exercises and questions"""
+    if is_student(request.user):
+        return redirect('index')
+    
+    classroom = get_object_or_404(Classroom, classroomID=classroomID)
+    
+    # Check if the instructor is associated with this classroom
+    if not classroom.instructors.filter(userID=request.user.userID).exists():
+        messages.error(request, "You don't have permission to import topics for this classroom.")
+        return redirect('classroom', id=classroomID)
+    
+    if request.method == 'POST':
+        if 'csv_file' not in request.FILES:
+            messages.error(request, "No file was uploaded.")
+            return render(request, 'import_topics.html', {'classroomID': classroomID})
+        
+        csv_file = request.FILES['csv_file']
+        
+        # Process the CSV file with extended functionality
+        topic_count, exercise_count, question_count, error_rows, errors = TopicController.importTopicsFromCSV(csv_file, classroom)
+        
+        # Handle possible errors
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, 'import_topics.html', {'classroomID': classroomID})
+        
+        # Handle row-specific errors
+        if error_rows:
+            for error in error_rows:
+                messages.warning(request, error)
+        
+        # Success message
+        if topic_count > 0:
+            success_msg = f"Successfully imported {topic_count} topics"
+            if exercise_count > 0:
+                success_msg += f", {exercise_count} exercises"
+            if question_count > 0:
+                success_msg += f", and {question_count} questions"
+            success_msg += "!"
+            
+            messages.success(request, success_msg)
+            if not error_rows:
+                return redirect('classroom', id=classroomID)
+        else:
+            messages.error(request, "No topics were imported. Please check your CSV file and try again.")
+    
+    return render(request, 'import_topics.html', {'classroomID': classroomID})
