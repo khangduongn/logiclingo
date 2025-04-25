@@ -154,6 +154,7 @@ class Question(models.Model):
 class Answer(models.Model):
     answerID = models.AutoField(primary_key=True)
     question = models.ForeignKey('Question', on_delete=models.CASCADE, related_name="answers")
+    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='answers')
     answer = models.TextField(blank=False)
     correct = models.BooleanField(default=False)
 

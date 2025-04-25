@@ -298,6 +298,30 @@ def create_question(request, classroomID, topicID, exerciseID):
 def question(request, classroomID, topicID, exerciseID, questionID):
 
     question = get_object_or_404(Question, questionID=questionID)
+
+    #student view
+    if is_student(request.user):
+
+        form = AnswerForm()
+        if request.method == 'POST':
+            form = AnswerForm(request.POST)
+            if form.is_valid():
+                answer = form.cleaned_data['answer']
+                correct = answer.strip().lower() == question.correctAnswer.strip().lower()
+
+                answer_result = "correct" if correct else "incorrect"
+
+                Answer.objects.create(
+                    question=question,
+                    user=request.user,
+                    answer=answer,
+                    correct=correct
+                )
+                return render(request, 'question_student_view.html', {'question': question, 'form': form, 'answer_result': answer_result, 'classroomID': classroomID, 'topicID': topicID, 'exerciseID': exerciseID})
+       
+        return render(request, 'question_student_view.html', {'question': question, 'form': form, 'classroomID': classroomID, 'topicID': topicID, 'exerciseID': exerciseID})
+
+    #instructor view
     return render(request, 'question.html', {'question': question, 'classroomID': classroomID, 'topicID': topicID, 'exerciseID': exerciseID})
     
 
