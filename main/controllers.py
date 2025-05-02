@@ -189,6 +189,58 @@ class TopicController:
             
         return success_count, exercise_count, question_count, error_rows, errors
 
+    @staticmethod
+    def createNewTopics(topicsCSVFile, classroom):
+        """
+        Import topics from a CSV file following UC-048 sequence diagram.
+        Returns tuple of (success, topic_count, error)
+        """
+        success = True
+        topic_count = 0
+        error = None
+        
+        # Check if file is a CSV
+        if not topicsCSVFile.name.endswith('.csv'):
+            return False, 0, "File must be a CSV file"
+            
+        # Try to decode the file
+        try:
+            file_data = topicsCSVFile.read().decode('utf-8')
+        except UnicodeDecodeError:
+            return False, 0, "Unable to read the file. Please ensure it's a valid CSV file with UTF-8 encoding."
+            
+        csv_data = io.StringIO(file_data)
+        
+        try:
+            reader = csv.DictReader(csv_data)
+            
+            # Validate header row
+            required_fields = ['topicName', 'topicDescription', 'topicNote']
+            header = reader.fieldnames
+            
+            if not header:
+                return False, 0, "CSV file appears to be empty"
+                
+            missing_fields = [field for field in required_fields if field not in header]
+            if missing_fields:
+                return False, 0, f"CSV file is missing required columns: {', '.join(missing_fields)}"
+            
+            # Process rows as per sequence diagram
+            for row in reader:
+                topic_name = row.get('topicName', '').strip()
+                topic_description = row.get('topicDescription', '').strip()
+                topic_note = row.get('topicNote', '').strip()
+                
+                if topic_name and topic_description and topic_note:
+                    # Create new topic using Topic.new() as per sequence diagram
+                    Topic.new(topic_name, topic_description, topic_note, classroom)
+                    topic_count += 1
+                    
+        except Exception as e:
+            return False, topic_count, f"Error processing CSV file: {str(e)}"
+            
+        return success, topic_count, error
+
 class ExerciseController:
 
     @staticmethod
