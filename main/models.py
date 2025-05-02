@@ -120,7 +120,28 @@ class Topic(models.Model):
     topicDescription = models.TextField(blank=False)
     topicNote = models.TextField(blank=False)
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name='topics')
+    completed = models.BooleanField(default=False)
 
+    @staticmethod
+    def new(topicName, topicDescription, topicNote, classroom):
+        """
+        Create a new Topic as specified in the sequence diagram for UC-048
+        """
+        topic = Topic(
+            topicName=topicName,
+            topicDescription=topicDescription,
+            topicNote=topicNote,
+            classroom=classroom
+        )
+        topic.write()
+        return topic
+        
+    def write(self):
+        """
+        Save the topic to the database as specified in the sequence diagram for UC-048
+        """
+        self.save()
+        return self
 
 class Exercise(models.Model):
     exerciseID = models.AutoField(primary_key=True)

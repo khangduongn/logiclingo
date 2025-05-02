@@ -502,7 +502,7 @@ def add_question_to_exercise(request, classroomID, questionID):
 
 @login_required
 def import_topics(request, classroomID):
-    """View for importing topics from a CSV file with optional exercises and questions"""
+    """View for importing topics from a CSV file following UC-048 sequence diagram"""
     if is_student(request.user):
         return redirect('index')
     
@@ -520,33 +520,20 @@ def import_topics(request, classroomID):
         
         csv_file = request.FILES['csv_file']
         
-        # Process the CSV file with extended functionality
-        topic_count, exercise_count, question_count, error_rows, errors = TopicController.importTopicsFromCSV(csv_file, classroom)
+        # Process the CSV file following the sequence diagram
+        success, topic_count, error = TopicController.createNewTopics(csv_file, classroom)
         
-        # Handle possible errors
-        if errors:
-            for error in errors:
-                messages.error(request, error)
+        # Handle file read errors as per sequence diagram
+        if not success:
+            messages.error(request, error)
             return render(request, 'import_topics.html', {'classroomID': classroomID})
-        
-        # Handle row-specific errors
-        if error_rows:
-            for error in error_rows:
-                messages.warning(request, error)
         
         # Success message
         if topic_count > 0:
-            success_msg = f"Successfully imported {topic_count} topics"
-            if exercise_count > 0:
-                success_msg += f", {exercise_count} exercises"
-            if question_count > 0:
-                success_msg += f", and {question_count} questions"
-            success_msg += "!"
-            
-            messages.success(request, success_msg)
-            if not error_rows:
-                return redirect('classroom', id=classroomID)
+            messages.success(request, f"Successfully imported {topic_count} topics!")
+            # goToAddToR as per sequence diagram - redirect to the classroom page
+            return redirect('classroom', id=classroomID)
         else:
-            messages.error(request, "No topics were imported. Please check your CSV file and try again.")
+            messages.warning(request, "No topics were found in the CSV file. Please check your file format and try again.")
     
     return render(request, 'import_topics.html', {'classroomID': classroomID})
