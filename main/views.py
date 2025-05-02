@@ -468,32 +468,61 @@ def import_questions(request, classroomID, topicID, exerciseID):
 def import_exercises(request, classroomID, topicID):
     if is_student(request.user):
         return redirect('index')
+    
     topic = get_object_or_404(Topic, topicID = topicID)
-    importExerciseForm = ImportExerciseForm()
+    form = ImportExerciseForm()
+    preview_data = []
 
     if request.method == 'POST':
-        importExerciseForm = ImportExerciseForm(request.POST, request.FILES)
-        if importExerciseForm.is_valid():
-            file = request.FILES['csv_file']
-            try:
-                csv_file = file.read().decode('utf-8').splitlines()
-                reader = csv.DictReader(csv_file)
+        if 'confirm' in request.POST:
+            preview_data = request.session.get('preview_data', [])
+            created = 0
+            for row in preview_data:
+                if row['valid']:
+                    Exercise.objects.create(
+                        exerciseName=row['exerciseName'],
+                        exerciseDescription=row['exerciseDescription'],
+                        topic=topic
+                    )
+                    created += 1
+            messages.success(request, f"{created} exercise(s) successfully imported.")
+            request.session.pop('preview_data', None)
+            return redirect('topic', classroomID=classroomID, topicID=topicID)
+        else:
+            form = ImportExerciseForm(request.POST, request.FILES)
+            if form.is_valid():
+                file = request.FILES['csv_file']
+                try:
+                    csv_file = file.read().decode('utf-8').splitlines()
+                    reader = csv.DictReader(csv_file)
 
-                for row in reader:
-                    exerciseName = row.get("exerciseName")
-                    exerciseDescription = row.get("exerciseDescription")
+                    for i, row in enumerate(reader, start=1):
+                        name = row.get("exerciseName", "").strip()
+                        description = row.get("exerciseDescription", "").strip()
+                        entry = {
+                            "exerciseName": name,
+                            "exerciseDescription": description,
+                            "valid": True,
+                            "error": ""
+                        }
 
-                    if exerciseName and exerciseDescription:
-                        Exercise.objects.create(exerciseName=exerciseName, exerciseDescription = exerciseDescription, topic=topic)
-                    
-                messages.success(request, "Exercise successfully imported")
-                return redirect('topic', classroomID = classroomID, topicID = topicID)
-            except Exception as e:
-                messages.error(request, "Error reading CSV file")
-                return redirect(request.path)
-    
+                        if not name or not description:
+                            entry["valid"] = False
+                            entry["error"] = "Missing required fields"
+                        elif Exercise.objects.filter(exerciseName=name, topic=topic).exists():
+                            entry["valid"] = False
+                            entry["error"] = "Name already exists in topic"
+                        
+                        preview_data.append(entry);
+                    request.session['preview_data'] = preview_data
+                except Exception as e:
+                    messages.error(request, "Error reading CSV file")
+                    return redirect(request.path)
+    has_valid = any(item["valid"] for item in preview_data)
     return render(request, 'import_exercises.html', {
-        'form': importExerciseForm,
+        'form': form,
+        'preview_data': preview_data,
+        'has_valid': has_valid,
         'classroomID': classroomID,
         'topicID': topicID
     })
