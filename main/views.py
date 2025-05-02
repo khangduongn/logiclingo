@@ -427,38 +427,75 @@ def delete_topic(request, classroomID, topicID):
 def import_questions(request, classroomID, topicID, exerciseID):
     if is_student(request.user):
         return redirect('index')
+    
     exercise = get_object_or_404(Exercise, exerciseID = exerciseID)
-    importQuestionForm = ImportQuestionForm()
+    form = ImportQuestionForm()
+    preview_data = []
+
+    VALID_TYPES = dict(Question.QUESTION_TYPES).keys()
+
     if request.method == 'POST':
-        importQuestionForm = ImportQuestionForm(request.POST, request.FILES);
-        if importQuestionForm.is_valid():
-            file = request.FILES['csv_file']
-            print(f"Uploaded file name: {file.name}")
-            try:
-                csv_file = file.read().decode('utf-8')
-                io_string = io.StringIO(csv_file)
-                reader = csv.DictReader(io_string)
+        if 'confirm' in request.POST:
+            preview_data = request.session.get('preview_questions', [])
+            created = 0;
+            for row in preview_data:
+                if row['valid']:
+                    QuestionController.createNewQuestion(
+                        row['questionType'],
+                        row['questionPrompt'],
+                        row['correctAnswer'],
+                        exercise
+                    )
+                    created += 1
+            messages.success(request, f"{created} question(s) successfully imported.")
+            request.session.pop('preview_questions', None)
+            return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID)
+        else:
+            form = ImportQuestionForm(request.POST, request.FILES);
+            if form.is_valid():
+                file = request.FILES['csv_file']
+                print(f"Uploaded file name: {file.name}")
+                try:
+                    csv_file = file.read().decode('utf-8')
+                    io_string = io.StringIO(csv_file)
+                    reader = csv.DictReader(io_string)
 
-                for row in reader:
-                    questionType = row.get("questionType")
-                    questionPrompt = row.get("questionPrompt")
-                    correctAnswer = row.get("correctAnswer")
+                    for row in reader:
+                        type = row.get("questionType", "").strip()
+                        prompt = row.get("questionPrompt", "").strip()
+                        answer = row.get("correctAnswer", "").strip()
 
-                    if questionType and questionPrompt and correctAnswer:
-                        QuestionController.createNewQuestion(questionType.strip(), questionPrompt.strip(), correctAnswer.strip(), exercise)
-                
-                messages.success(request, "Questions successfully imported.")
-                return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID)
+                        entry = {
+                            "questionType": type,
+                            "questionPrompt": prompt,
+                            "correctAnswer": answer,
+                            "valid": True,
+                            "error": ""
+                        }
 
-            except Exception as e:
-                print(f"Error: {e}")
-                messages.error(request, "Error reading CSV file")
-                return redirect(request.path)
-    else:
-        print(importQuestionForm.errors)
-        messages.error(request, "Invalid form data")
+                        if not type or not prompt or not answer:
+                            entry['valid'] = False
+                            entry['error'] = "Missing required fields"
+                        elif type not in VALID_TYPES:
+                            entry['valid'] = False
+                            entry['error'] = f"Invalid questionType: '{type}'"
+                        elif Question.objects.filter(questionType=type, questionPrompt=prompt, correctAnswer=answer, exercise=exercise).exists():
+                            entry['valid'] = False
+                            entry['error'] = "Prompt already exists in exercise"
+                        
+                        preview_data.append(entry)
+
+                    request.session['preview_questions'] = preview_data
+
+                except Exception as e:
+                    print(f"Error: {e}")
+                    messages.error(request, "Error reading CSV file")
+                    return redirect(request.path)
+    has_valid = any(row['valid'] for row in preview_data)
     return render(request, 'import_questions.html', {
-        'form': importQuestionForm,
+        'form': form,
+        'preview_data': preview_data,
+        'has_valid': has_valid,
         'classroomID': classroomID,
         'topicID': topicID,
         'exerciseID': exerciseID
@@ -496,7 +533,7 @@ def import_exercises(request, classroomID, topicID):
                     csv_file = file.read().decode('utf-8').splitlines()
                     reader = csv.DictReader(csv_file)
 
-                    for i, row in enumerate(reader, start=1):
+                    for row in reader:
                         name = row.get("exerciseName", "").strip()
                         description = row.get("exerciseDescription", "").strip()
                         entry = {

@@ -25,23 +25,23 @@
                     <th>Description</th>
                     <th>Status</th>
                 </tr>
-                <tbody>
-                    {% for row in preview_data %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ row.exerciseName }}</td>
-                            <td>{{ row.exerciseDescription }}</td>
-                            <td>
-                                {% if row.valid %}
-                                    Valid
-                                {% else %}
-                                    Invalid ({{ row.error }})
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
             </thead>
+            <tbody>
+                {% for row in preview_data %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ row.exerciseName }}</td>
+                        <td>{{ row.exerciseDescription }}</td>
+                        <td>
+                            {% if row.valid %}
+                                <span class="text-success">Valid</span>
+                            {% else %}
+                                <span class="text-danger">Invalid</span> ({{ row.error }})
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
         </table>
         <button type="submit" class="btn btn-success" {% if not has_valid %}disabled{% endif %}>Import</button>
     </form>
