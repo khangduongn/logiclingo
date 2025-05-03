@@ -4,31 +4,44 @@
 {% block title %} Exercise {{ exercise.exerciseID }} {% endblock %}
 
 {% block content %} 
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ exercise.exerciseName }}</h2>
+        {% if request.user|is_instructor %}
+        <div class="btn-group">
+            <a href="{% url 'modify_exercise' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-primary" role="button">Edit Exercise</a>
+        </div>
+        {% endif %}
+    </div>
 
-<div>Exercise Name: {{ exercise.exerciseName}} </div>
-<div>Exercise Description: {{ exercise.exerciseDescription }}</div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Description</h5>
+            <p class="card-text">{{ exercise.exerciseDescription }}</p>
+        </div>
+    </div>
 
-<div class="questions">
-    <h3>Questions</h3>
-    {% if exercise.questions.all %}
-        <ul class="question-list">
-            {% for question in exercise.questions.all %}
-                <li>
-                    <a href="{% url 'question' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID questionID=question.questionID%}">
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Questions</h5>
+            {% if request.user|is_instructor %}
+            <a href="{% url 'add_existing_questions' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-success mb-3">Add Existing Questions</a>
+            <a href="{% url 'create_question' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-success mb-3">Create New Question</a>
+            {% endif %}
+            {% if exercise.questions.all %}
+                <div class="list-group">
+                    {% for question in exercise.questions.all %}
+                    <a href="{% url 'question' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID questionID=question.questionID%}"
+                        class="list-group-item list-group-item-action">
                         {{ question.questionPrompt }}
                     </a>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>This exercise doesn't have any questions yet.</p>
-    {% endif %}
-</div>
-
-{% if request.user|is_instructor %}
-<a href="{% url 'add_existing_questions' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-success">Add Existing Questions</a>
-<a href="{% url 'create_question' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-primary" role="button">Create New Question</a>
-<a href="{% url 'modify_exercise' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-info" role="button">Edit</a>
-{% endif %}
-<a href="{% url 'topic' classroomID=classroomID topicID=topicID %}" class="btn btn-light" role="button">Cancel</a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">No questions yet.</p>
+            {% endif %}
+        </div>
+    </div>
+    <a href="{% url 'topic' classroomID=classroomID topicID=topicID %}" class="btn btn-light" role="button">Back to Topic</a>
+</div>    
 {% endblock content %} 

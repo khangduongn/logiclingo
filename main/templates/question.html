@@ -4,10 +4,33 @@
 {% block title %} Question {{ question.questionID }} {% endblock %}
 
 {% block content %} 
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Question</h2>  {% comment %} add the question number after once that is coded in {% endcomment %}
+    </div>
 
-<div>Question Type: {{ question.get_questionType_display}} </div>
-<div>Prompt: {{ question.questionPrompt}} </div>
-<div>Correct Answer: {{ question.correctAnswer }}</div>
-<a href="{% url 'modify_question' classroomID=classroomID topicID=topicID exerciseID=exerciseID questionID=question.questionID %}" class="btn btn-info" role="button">Edit</a>
-<a href="{% url 'exercise' classroomID=classroomID topicID=topicID exerciseID=exerciseID %}" class="btn btn-light" role="button">Cancel</a>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Prompt</h5>
+            <p class="card-text">{{ question.questionPrompt }}</p>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Type</h5>
+            <p class="card-text">{{ question.get_questionType_display }}</p>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Correct Answer</h5>
+            <p class="card-text">{{ question.correctAnswer }}</p>
+        </div>
+    </div>
+
+    <a href="{% url 'modify_question' classroomID=classroomID topicID=topicID exerciseID=exerciseID questionID=question.questionID %}" class="btn btn-primary" role="button">Edit</a>
+    <a href="{% url 'exercise' classroomID=classroomID topicID=topicID exerciseID=exerciseID %}" class="btn btn-light" role="button">Back to Exercise</a>
+</div>
 {% endblock content %} 
