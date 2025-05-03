@@ -105,3 +105,17 @@ class ModifyExerciseForm(forms.ModelForm):
     class Meta:
         model = Exercise
         fields = ['exerciseName', 'exerciseDescription']
+
+class AddExistingExercisesForm(forms.Form):
+    exercises = forms.ModelMultipleChoiceField(
+        queryset=Exercise.objects.none(),
+        widget=forms.CheckboxSelectMultiple,
+        required=True
+    )
+
+class AddExistingQuestionsForm(forms.Form):
+    questions = forms.ModelMultipleChoiceField(
+        queryset=Question.objects.none(),
+        widget=forms.CheckboxSelectMultiple,
+        required=True
+    )

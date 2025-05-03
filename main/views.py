@@ -256,7 +256,7 @@ def create_topic(request, classroomID):
             topicDescription = form.cleaned_data['topicDescription']
             topicNote = form.cleaned_data['topicNote']
 
-            topic = TopicController.createNewTopic(topicName, topicDescription, topicNote, classroom)
+            topic = TopicController.createNewTopic(topicName, topicDescription, topicNote, classroom, request.user.instructor)
 
             if topic:
                 return redirect('topic', classroomID=classroomID, topicID=topic.topicID)
@@ -286,7 +286,7 @@ def create_question(request, classroomID, topicID, exerciseID):
             questionPrompt = form.cleaned_data['questionPrompt']
             correctAnswer = form.cleaned_data['correctAnswer']
 
-            question = QuestionController.createNewQuestion(questionType, questionPrompt, correctAnswer, exercise)
+            question = QuestionController.createNewQuestion(questionType, questionPrompt, correctAnswer, exercise, request.user.instructor)
 
             if question:
                 return redirect('question', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID, questionID=question.questionID)
@@ -331,7 +331,7 @@ def create_exercise(request, classroomID, topicID):
             exerciseName = form.cleaned_data['exerciseName']
             exerciseDescription = form.cleaned_data['exerciseDescription']
 
-            exercise = ExerciseController.createNewExercise(exerciseName, exerciseDescription, topic)
+            exercise = ExerciseController.createNewExercise(exerciseName, exerciseDescription, topic, request.user.instructor)
 
             return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exercise.exerciseID)
         else:
@@ -423,6 +423,38 @@ def delete_topic(request, classroomID, topicID):
     })
 
 @login_required
+def add_existing_exercises(request, classroomID, topicID):
+
+    if is_student(request.user):
+        return redirect('index')
+
+    topic = get_object_or_404(Topic, topicID=topicID)
+
+    # get all exercises created by the instructor that are not in this topic
+    available_exercises = Exercise.objects.filter(created_by=request.user.instructor).exclude(topics=topic) # exclude exercises that have already been added to the topic
+
+    form = AddExistingExercisesForm()
+    form.fields['exercises'].queryset = available_exercises
+    
+    if request.method == 'POST':
+        form = AddExistingExercisesForm(request.POST)
+        form.fields['exercises'].queryset = available_exercises 
+
+        if form.is_valid():
+            for exercise in form.cleaned_data['exercises']:
+                exercise.topics.add(topic)
+                # exercise.save()
+            return redirect('topic', classroomID=classroomID, topicID=topicID)
+        
+
+    return render(request, 'add_existing_exercises.html', {
+        'form': form,
+        'topic': topic,
+        'classroomID': classroomID,
+        'no_existing_exercises': not form.fields['exercises'].queryset.exists(),
+    })
+
+@login_required
 def save_question(request, classroomID):
     """View for saving a question without associating it with an exercise"""
     if is_student(request.user):
@@ -469,6 +501,38 @@ def saved_questions(request, classroomID):
         'classroom': classroom,
         'saved_questions': saved_questions,
         'classroomID': classroomID
+    })
+
+@login_required
+def add_existing_questions(request, classroomID, topicID, exerciseID):
+
+    if is_student(request.user):
+        return redirect('index')
+
+    exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
+
+    # get all questions created by the instructor that are not in this exercise
+    available_questions = Question.objects.filter(created_by=request.user.instructor).exclude(exercises=exercise) # exclude questions that have already been added to the exercise
+
+    form = AddExistingQuestionsForm()
+    form.fields['questions'].queryset = available_questions
+    
+    if request.method == 'POST':
+        form = AddExistingQuestionsForm(request.POST)
+        form.fields['questions'].queryset = available_questions 
+
+        if form.is_valid():
+            for question in form.cleaned_data['questions']:
+                question.exercises.add(exercise)
+            return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID)
+        
+
+    return render(request, 'add_existing_questions.html', {
+        'form': form,
+        'exercise': exercise,
+        'classroomID': classroomID,
+        'topicID': topicID,
+        'no_existing_questions': not form.fields['questions'].queryset.exists(),
     })
 
 @login_required

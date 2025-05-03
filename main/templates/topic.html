@@ -33,7 +33,8 @@
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Exercises</h5>
-            <a href="{% url 'create_exercise' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-success mb-3">Add Exercise</a>
+            <a href="{% url 'add_existing_exercises' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-success mb-3">Add Existing Exercises</a>
+            <a href="{% url 'create_exercise' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-success mb-3">Create New Exercise</a>
             {% if topic.exercises.all %}
                 <div class="list-group">
                     {% for exercise in topic.exercises.all %}
