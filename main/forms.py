@@ -126,3 +126,11 @@ class AddExistingQuestionsForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
         required=True
     )
+class AnswerForm(forms.Form):
+    answer = forms.CharField(widget=forms.Textarea, required=True)
+
+    def clean_answer(self):
+        answer = self.cleaned_data['answer'].strip()
+        if not answer:
+            raise forms.ValidationError("Your answer cannot be empty")
+        return answer
