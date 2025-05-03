@@ -270,7 +270,36 @@ def topic(request, classroomID, topicID):
     topic = get_object_or_404(Topic, topicID=topicID)
     return render(request, 'topic.html', {'topic': topic, 'classroomID': classroomID})
     
-  
+@login_required
+def add_existing_topics(request, classroomID):
+
+    if is_student(request.user):
+        return redirect('index')
+
+    classroom = get_object_or_404(Classroom, classroomID=classroomID)
+
+    # get all topics created by the instructor that are not in this classroom
+    available_topics = Topic.objects.filter(created_by=request.user.instructor).exclude(classrooms=classroom) # exclude topics that have already been added to the classroom
+
+    form = AddExistingTopicsForm()
+    form.fields['topics'].queryset = available_topics
+    
+    if request.method == 'POST':
+        form = AddExistingTopicsForm(request.POST)
+        form.fields['topics'].queryset = available_topics 
+
+        if form.is_valid():
+            for topic in form.cleaned_data['topics']:
+                topic.classrooms.add(classroom)
+            return redirect('classroom', id=classroomID)
+        
+
+    return render(request, 'add_existing_topics.html', {
+        'form': form,
+        'classroom': classroom,
+        'no_existing_topics': not form.fields['topics'].queryset.exists(),
+    })
+
 def create_question(request, classroomID, topicID, exerciseID):
     # If the user is a student, redirect them back
     if is_student(request.user):

@@ -142,6 +142,9 @@ class Topic(models.Model):
         """
         self.save()
         return self
+    
+    def __str__(self):
+        return self.topicName
 
 class Exercise(models.Model):
     exerciseID = models.AutoField(primary_key=True)

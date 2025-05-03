@@ -7,7 +7,7 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>{{ topic.topicName }}</h2>
-        {% if not is_student %}
+        {% if request.user|is_instructor %}
         <div class="btn-group">
             <a href="{% url 'edit_topic' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-primary">Edit Topic</a>
             <a href="{% url 'delete_topic' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-danger">Delete Topic</a>
@@ -29,12 +29,13 @@
         </div>
     </div>
 
-    {% if not is_student %}
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Exercises</h5>
+            {% if request.user|is_instructor %}
             <a href="{% url 'add_existing_exercises' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-success mb-3">Add Existing Exercises</a>
             <a href="{% url 'create_exercise' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-success mb-3">Create New Exercise</a>
+            {% endif %}
             {% if topic.exercises.all %}
                 <div class="list-group">
                     {% for exercise in topic.exercises.all %}
@@ -49,6 +50,5 @@
             {% endif %}
         </div>
     </div>
-    {% endif %}
 </div>
 {% endblock %} 
