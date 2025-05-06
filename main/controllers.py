@@ -31,7 +31,7 @@ class ClassroomController:
 class TopicController:
 
     @staticmethod
-    def createNewTopic(topicName: str, topicDescription: str, topicNote: str, classroom):
+    def createNewTopic(topicName: str, topicDescription: str, topicNote: str, classroom, instructor):
         
         topicName = topicName.strip()
         topicDescription = topicDescription.strip()
@@ -39,12 +39,14 @@ class TopicController:
 
         #check if the topic name, desc, and note are not empty
         if topicName and topicDescription and topicNote:
-            return Topic.objects.create(
+            topic = Topic.objects.create(
                 topicName=topicName,
                 topicDescription=topicDescription,
                 topicNote=topicNote, 
-                classroom=classroom
+                created_by=instructor
             )
+            topic.classrooms.add(classroom)
+            return topic
     
     @staticmethod
     def modifyTopic(topicID: int, topicName: str, topicDescription: str, topicNote: str):
@@ -244,19 +246,20 @@ class TopicController:
 class ExerciseController:
 
     @staticmethod
-    def createNewExercise(exerciseName: str, exerciseDescription: str, topic):
+    def createNewExercise(exerciseName: str, exerciseDescription: str, topic, instructor):
         
         exerciseName = exerciseName.strip()
         exerciseDescription = exerciseDescription.strip()
 
         #check if the exercise name and description are not empty
         if exerciseName and exerciseDescription:
-            return Exercise.objects.create(
+            exercise = Exercise.objects.create(
                 exerciseName=exerciseName,
                 exerciseDescription=exerciseDescription, 
-                topic=topic
+                created_by=instructor
             )
-
+            exercise.topics.add(topic)
+            return exercise
         else:
             return None
 
@@ -331,21 +334,22 @@ class ExerciseController:
 class QuestionController:
 
     @staticmethod
-    def createNewQuestion(questionType: str, questionPrompt: str, correctAnswer: str, exercise=None, instructor=None, is_saved=False):
+    def createNewQuestion(questionType: str, questionPrompt: str, correctAnswer: str, exercise, instructor, is_saved=False):
         
         questionPrompt = questionPrompt.strip()
         correctAnswer = correctAnswer.strip()
 
         #check if the question prompt and correct answer are not empty
         if questionPrompt and correctAnswer:
-            return Question.objects.create(
+            question = Question.objects.create(
                 questionType=questionType,
                 questionPrompt=questionPrompt,
                 correctAnswer=correctAnswer,
-                exercise=exercise,
                 created_by=instructor,
                 is_saved=is_saved
             )
+            question.exercises.add(exercise)
+            return question
 
         else:
             return None

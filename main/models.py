@@ -119,8 +119,8 @@ class Topic(models.Model):
     topicName = models.TextField(blank=False)
     topicDescription = models.TextField(blank=False)
     topicNote = models.TextField(blank=False)
-    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name='topics')
-    completed = models.BooleanField(default=False)
+    classrooms = models.ManyToManyField(Classroom, related_name='topics')
+    created_by = models.ForeignKey(Instructor, on_delete=models.CASCADE, related_name='topics', null=False, blank=False)
 
     @staticmethod
     def new(topicName, topicDescription, topicNote, classroom):
@@ -142,12 +142,16 @@ class Topic(models.Model):
         """
         self.save()
         return self
+    
+    def __str__(self):
+        return self.topicName
 
 class Exercise(models.Model):
     exerciseID = models.AutoField(primary_key=True)
     exerciseName = models.CharField(max_length = 200)
     exerciseDescription = models.TextField()
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='exercises')
+    created_by = models.ForeignKey(Instructor, on_delete=models.CASCADE, related_name='exercises', null=False, blank=False)
+    topics = models.ManyToManyField(Topic, related_name='exercises') 
   
     def __str__(self):
         return self.exerciseName
@@ -167,10 +171,10 @@ class Question(models.Model):
     questionType = models.CharField(max_length=100, choices=QUESTION_TYPES, default='multiple_choice', blank=False)
     questionPrompt = models.TextField(blank=False)
     correctAnswer = models.TextField(blank=False)
-    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='questions', null=True, blank=True)
-    created_by = models.ForeignKey(Instructor, on_delete=models.CASCADE, related_name='created_questions', null=True)
     is_saved = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(Instructor, on_delete=models.CASCADE, related_name='questions', null=False, blank=False)
+    exercises = models.ManyToManyField(Exercise, related_name='questions') 
 
     def __str__(self):
         return self.questionPrompt
@@ -178,6 +182,7 @@ class Question(models.Model):
 class Answer(models.Model):
     answerID = models.AutoField(primary_key=True)
     question = models.ForeignKey('Question', on_delete=models.CASCADE, related_name="answers")
+    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='answers')
     answer = models.TextField(blank=False)
     correct = models.BooleanField(default=False)
 

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+
+{% block title %} Question {{ question.questionID }} {% endblock %}
+
+{% block content %} 
+
+<div>Question Type: {{ question.get_questionType_display}} </div>
+<div>Prompt: {{ question.questionPrompt}} </div>
+
+
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Submit Answer</button>
+</form>
+
+{% if answer_result %}
+  <div class="w-50 {% if answer_result == 'correct' %}bg-success{% else %}bg-danger{% endif %}">
+    Your answer was {{ answer_result }}!
+  </div>
+{% endif %}
+
+<a href="{% url 'exercise' classroomID=classroomID topicID=topicID exerciseID=exerciseID %}" class="btn btn-light" role="button">Cancel</a>
+{% endblock content %} 

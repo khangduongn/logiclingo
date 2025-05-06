@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %} Add Existing Exercises {% endblock %}
+
+{% block content %} 
+
+<h2>Add Existing Exercises to {{ topic.topicName }}</h2>
+
+{% if no_existing_exercises %}
+    <p>No existing exercises to add</p>
+{% else %}
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Add Exercises</button>
+</form>
+{% endif %}
+<a href="{% url 'topic' classroomID=classroomID topicID=topic.topicID %}"><button type="button">Cancel</button></a>
+
+{% endblock %}

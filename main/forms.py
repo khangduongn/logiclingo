@@ -106,6 +106,36 @@ class ModifyExerciseForm(forms.ModelForm):
         model = Exercise
         fields = ['exerciseName', 'exerciseDescription']
 
+class AddExistingTopicsForm(forms.Form):
+    topics = forms.ModelMultipleChoiceField(
+        queryset=Topic.objects.none(),
+        widget=forms.CheckboxSelectMultiple,
+        required=True
+    )
+
+class AddExistingExercisesForm(forms.Form):
+    exercises = forms.ModelMultipleChoiceField(
+        queryset=Exercise.objects.none(),
+        widget=forms.CheckboxSelectMultiple,
+        required=True
+    )
+
+class AddExistingQuestionsForm(forms.Form):
+    questions = forms.ModelMultipleChoiceField(
+        queryset=Question.objects.none(),
+        widget=forms.CheckboxSelectMultiple,
+        required=True
+    )
+class AnswerForm(forms.Form):
+    answer = forms.CharField(widget=forms.Textarea, required=True)
+
+    def clean_answer(self):
+        answer = self.cleaned_data['answer'].strip()
+        if not answer:
+            raise forms.ValidationError("Your answer cannot be empty")
+        return answer
+
+
 class ImportQuestionForm(forms.Form):
     csv_file = forms.FileField(label="Upload CSV file")
 
