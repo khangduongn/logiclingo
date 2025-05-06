@@ -228,6 +228,7 @@
 {% if request.user|is_instructor %}
 <div class="classroom-actions">
     <a href="{% url 'classroom_settings' id=classroom.classroomID %}" class="btn btn-info">Classroom Settings</a>
+    <a href="{% url 'import_topics' classroomID=classroom.classroomID %}" class="btn btn-success">Import Topics from CSV</a>
 </div>
 {% endif %}
 
@@ -238,7 +239,7 @@
         <div class="path-line"></div>
         {% for topic in topics %}
             <div class="topic-node {% if topic.completed %}completed{% endif %}" 
-                 onclick="window.location.href='{% url 'topic' classroomID=classroom.classroomID topicID=topic.topicID %}'">
+                 data-topic-url="{% url 'topic' classroomID=classroom.classroomID topicID=topic.topicID %}">
                 <div class="topic-name">{{ topic.topicName }}</div>
                 <div class="topic-details">
                     <h4>{{ topic.topicName }}</h4>
@@ -267,6 +268,14 @@
     // Add fade-out effect for topic details
     document.querySelectorAll('.topic-node').forEach(node => {
         let timeout;
+        
+        // Add click event listener to navigate to topic page
+        node.addEventListener('click', function() {
+            const topicUrl = this.getAttribute('data-topic-url');
+            if (topicUrl) {
+                window.location.href = topicUrl;
+            }
+        });
         
         node.addEventListener('mouseenter', () => {
             clearTimeout(timeout);

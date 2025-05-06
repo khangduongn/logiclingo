@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Saved Questions{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Your Saved Questions</h2>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="d-flex justify-content-between mb-4">
+        <a href="{% url 'save_question' classroomID=classroomID %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create New Question
+        </a>
+        <a href="{% url 'classroom' id=classroomID %}" class="btn btn-secondary">
+            Back to Classroom
+        </a>
+    </div>
+    
+    {% if saved_questions %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Type</th>
+                    <th>Question</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for question in saved_questions %}
+                <tr>
+                    <td>{{ question.get_questionType_display }}</td>
+                    <td>{{ question.questionPrompt|truncatechars:80 }}</td>
+                    <td>{{ question.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <a href="{% url 'add_question_to_exercise' classroomID=classroomID questionID=question.questionID %}" 
+                           class="btn btn-sm btn-success">
+                            Add to Exercise
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <p>You don't have any saved questions yet. Create a new question to get started!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

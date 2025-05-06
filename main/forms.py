@@ -68,6 +68,34 @@ class ModifyQuestionForm(forms.ModelForm):
         model = Question
         fields = ['questionType', 'questionPrompt', 'correctAnswer']
 
+class SaveQuestionForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = ['questionType', 'questionPrompt', 'correctAnswer']
+        widgets = {
+            'questionPrompt': forms.Textarea(attrs={'rows': 4}),
+            'correctAnswer': forms.Textarea(attrs={'rows': 2}),
+        }
+
+class AddQuestionToExerciseForm(forms.Form):
+    exercise = forms.ModelChoiceField(
+        queryset=Exercise.objects.none(),
+        empty_label="Select an exercise",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    def __init__(self, *args, **kwargs):
+        classroom_id = kwargs.pop('classroom_id', None)
+        super(AddQuestionToExerciseForm, self).__init__(*args, **kwargs)
+        
+        if classroom_id:
+            # Get all exercises in the classroom
+            exercises = Exercise.objects.filter(
+                topic__classroom__classroomID=classroom_id
+            ).order_by('topic__topicName', 'exerciseName')
+            
+            self.fields['exercise'].queryset = exercises
+
 class ExerciseForm(forms.ModelForm):
     class Meta:
         model = Exercise

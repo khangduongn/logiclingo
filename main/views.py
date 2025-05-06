@@ -267,9 +267,12 @@ def create_topic(request, classroomID):
 
 @login_required
 def topic(request, classroomID, topicID):
-
     topic = get_object_or_404(Topic, topicID=topicID)
-    return render(request, 'topic.html', {'topic': topic, 'classroomID': classroomID})
+    return render(request, 'topic.html', {
+        'topic': topic, 
+        'classroomID': classroomID,
+        'is_student': is_student(request.user)
+    })
     
   
 def create_question(request, classroomID, topicID, exerciseID):
@@ -503,63 +506,160 @@ def import_questions(request, classroomID, topicID, exerciseID):
 
 @login_required
 def import_exercises(request, classroomID, topicID):
+    """View for importing exercises from a CSV file"""
     if is_student(request.user):
         return redirect('index')
     
-    topic = get_object_or_404(Topic, topicID = topicID)
-    form = ImportExerciseForm()
-    preview_data = []
-
+    topic = get_object_or_404(Topic, topicID=topicID)
+    form = ImportExerciseForm()  # Instantiate the form
+    preview_data = None
+    has_valid = False
+    
     if request.method == 'POST':
         if 'confirm' in request.POST:
-            preview_data = request.session.get('preview_data', [])
-            created = 0
-            for row in preview_data:
-                if row['valid']:
-                    Exercise.objects.create(
-                        exerciseName=row['exerciseName'],
-                        exerciseDescription=row['exerciseDescription'],
-                        topic=topic
-                    )
-                    created += 1
-            messages.success(request, f"{created} exercise(s) successfully imported.")
-            request.session.pop('preview_data', None)
+            # Get the preview data from session
+            preview_data = request.session.get('exercise_preview_data', [])
+            count = ExerciseController.createExercisesFromPreview(preview_data, topic)
+            if count > 0:
+                messages.success(request, f'Successfully imported {count} exercises!')
+            else:
+                messages.warning(request, 'No valid exercises were found to import.')
+            # Clear session data
+            if 'exercise_preview_data' in request.session:
+                del request.session['exercise_preview_data']
             return redirect('topic', classroomID=classroomID, topicID=topicID)
-        else:
-            form = ImportExerciseForm(request.POST, request.FILES)
+            
+        elif 'csv_file' in request.FILES:
+            form = ImportExerciseForm(request.POST, request.FILES)  # Instantiate with POST data
             if form.is_valid():
-                file = request.FILES['csv_file']
-                try:
-                    csv_file = file.read().decode('utf-8').splitlines()
-                    reader = csv.DictReader(csv_file)
-
-                    for row in reader:
-                        name = row.get("exerciseName", "").strip()
-                        description = row.get("exerciseDescription", "").strip()
-                        entry = {
-                            "exerciseName": name,
-                            "exerciseDescription": description,
-                            "valid": True,
-                            "error": ""
-                        }
-
-                        if not name or not description:
-                            entry["valid"] = False
-                            entry["error"] = "Missing required fields"
-                        elif Exercise.objects.filter(exerciseName=name, topic=topic).exists():
-                            entry["valid"] = False
-                            entry["error"] = "Name already exists in topic"
-                        
-                        preview_data.append(entry);
-                    request.session['preview_data'] = preview_data
-                except Exception as e:
-                    messages.error(request, "Error reading CSV file")
-                    return redirect(request.path)
-    has_valid = any(item["valid"] for item in preview_data)
+                csv_file = request.FILES['csv_file']
+                if not csv_file.name.endswith('.csv'):
+                    messages.error(request, 'Please upload a CSV file.')
+                else:
+                    preview_data, has_valid = ExerciseController.importExercisesFromCSV(csv_file, topic)
+                    # Store preview data in session for confirmation step
+                    request.session['exercise_preview_data'] = preview_data
+    
     return render(request, 'import_exercises.html', {
-        'form': form,
+        'form': form,  # Pass the form to the template
         'preview_data': preview_data,
         'has_valid': has_valid,
         'classroomID': classroomID,
-        'topicID': topicID
+        'topicID': topicID,
+        'topic': topic
     })
+
+def save_question(request, classroomID):
+    """View for saving a question without associating it with an exercise"""
+    if is_student(request.user):
+        return redirect('index')
+    
+    form = SaveQuestionForm()
+    
+    if request.method == 'POST':
+        form = SaveQuestionForm(request.POST)
+        if form.is_valid():
+            question_type = form.cleaned_data['questionType']
+            question_prompt = form.cleaned_data['questionPrompt']
+            correct_answer = form.cleaned_data['correctAnswer']
+            
+            # Create a saved question using the controller
+            question = QuestionController.saveQuestion(
+                question_type, 
+                question_prompt, 
+                correct_answer, 
+                request.user.instructor
+            )
+            
+            if question:
+                messages.success(request, 'Question saved successfully!')
+                return redirect('saved_questions', classroomID=classroomID)
+            else:
+                messages.error(request, 'Failed to save question.')
+    
+    return render(request, 'save_question.html', {
+        'form': form,
+        'classroomID': classroomID
+    })
+
+@login_required
+def saved_questions(request, classroomID):
+    """View for displaying all saved questions"""
+    if is_student(request.user):
+        return redirect('index')
+    
+    classroom = get_object_or_404(Classroom, classroomID=classroomID)
+    saved_questions = QuestionController.getSavedQuestions(request.user.instructor)
+    
+    return render(request, 'saved_questions.html', {
+        'classroom': classroom,
+        'saved_questions': saved_questions,
+        'classroomID': classroomID
+    })
+
+@login_required
+def add_question_to_exercise(request, classroomID, questionID):
+    """View for adding a saved question to an exercise"""
+    if is_student(request.user):
+        return redirect('index')
+    
+    question = get_object_or_404(Question, questionID=questionID, created_by=request.user.instructor)
+    form = AddQuestionToExerciseForm(classroom_id=classroomID)
+    
+    if request.method == 'POST':
+        form = AddQuestionToExerciseForm(request.POST, classroom_id=classroomID)
+        if form.is_valid():
+            exercise = form.cleaned_data['exercise']
+            
+            # Add the question to the selected exercise
+            new_question = QuestionController.addQuestionToExercise(questionID, exercise.exerciseID)
+            
+            if new_question:
+                messages.success(request, 'Question added to exercise successfully!')
+                return redirect('exercise', classroomID=classroomID, topicID=exercise.topic.topicID, exerciseID=exercise.exerciseID)
+            else:
+                messages.error(request, 'Failed to add question to exercise.')
+    
+    return render(request, 'add_question_to_exercise.html', {
+        'form': form,
+        'question': question,
+        'classroomID': classroomID
+    })
+
+@login_required
+def import_topics(request, classroomID):
+    """View for importing topics from a CSV file following UC-048 sequence diagram"""
+    if is_student(request.user):
+        return redirect('index')
+    
+    classroom = get_object_or_404(Classroom, classroomID=classroomID)
+    
+    # Check if the instructor is associated with this classroom
+    if not classroom.instructors.filter(userID=request.user.userID).exists():
+        messages.error(request, "You don't have permission to import topics for this classroom.")
+        return redirect('classroom', id=classroomID)
+    
+    if request.method == 'POST':
+        if 'csv_file' not in request.FILES:
+            messages.error(request, "No file was uploaded.")
+            return render(request, 'import_topics.html', {'classroomID': classroomID})
+        
+        csv_file = request.FILES['csv_file']
+        
+        # Process the CSV file following the sequence diagram
+        success, topic_count, error = TopicController.createNewTopics(csv_file, classroom)
+        
+        # Handle file read errors as per sequence diagram
+        if not success:
+            messages.error(request, error)
+            return render(request, 'import_topics.html', {'classroomID': classroomID})
+        
+        # Success message
+        if topic_count > 0:
+            messages.success(request, f"Successfully imported {topic_count} topics!")
+            # goToAddToR as per sequence diagram - redirect to the classroom page
+            return redirect('classroom', id=classroomID)
+        else:
+            messages.warning(request, "No topics were found in the CSV file. Please check your file format and try again.")
+    
+    return render(request, 'import_topics.html', {'classroomID': classroomID})
