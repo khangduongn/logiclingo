@@ -25,8 +25,11 @@
         <div class="card-body">
             <h5 class="card-title">Questions</h5>
             {% if request.user|is_instructor %}
-            <a href="{% url 'add_existing_questions' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-success mb-3">Add Existing Questions</a>
-            <a href="{% url 'create_question' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-success mb-3">Create New Question</a>
+            <div class="mb-3">
+                <a href="{% url 'add_existing_questions' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-success me-2">Add Existing Questions</a>
+                <a href="{% url 'create_question' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-success">Create New Question</a>
+                <a href="{% url 'import_questions' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-secondary">Import Questions</a>
+            </div>
             {% endif %}
             {% if exercise.questions.all %}
                 <div class="list-group">
@@ -44,4 +47,4 @@
     </div>
     <a href="{% url 'topic' classroomID=classroomID topicID=topicID %}" class="btn btn-light" role="button">Back to Topic</a>
 </div>    
-{% endblock content %} 
+{% endblock content %}

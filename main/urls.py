@@ -29,4 +29,5 @@ urlpatterns = [
     path('classroom/<int:classroomID>/save_question/', views.save_question, name='save_question'),
     path('classroom/<int:classroomID>/saved_questions/', views.saved_questions, name='saved_questions'),
     path('classroom/<int:classroomID>/question/<int:questionID>/add_to_exercise/', views.add_question_to_exercise, name='add_question_to_exercise'),
+    path('classroom/<int:classroomID>/topic/<int:topicID>/import_exercises/', views.import_exercises, name='import_exercises'),
 ]

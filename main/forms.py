@@ -134,3 +134,10 @@ class AnswerForm(forms.Form):
         if not answer:
             raise forms.ValidationError("Your answer cannot be empty")
         return answer
+
+
+class ImportQuestionForm(forms.Form):
+    csv_file = forms.FileField(label="Upload CSV file")
+
+class ImportExerciseForm(forms.Form):
+    csv_file = forms.FileField(label="Upload CSV file")

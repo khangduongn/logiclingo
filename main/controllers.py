@@ -262,6 +262,74 @@ class ExerciseController:
             return exercise
         else:
             return None
+
+    @staticmethod
+    def importExercisesFromCSV(file, topic):
+        """
+        Import exercises from a CSV file
+        Returns a tuple of (preview_data, has_valid)
+        """
+        preview_data = []
+        has_valid = False
+        
+        try:
+            file_data = file.read().decode('utf-8')
+            csv_data = io.StringIO(file_data)
+            reader = csv.DictReader(csv_data)
+            
+            required_fields = ['exerciseName', 'exerciseDescription']
+            header = reader.fieldnames
+            
+            if not header:
+                raise ValueError("CSV file appears to be empty")
+                
+            missing_fields = [field for field in required_fields if field not in header]
+            if missing_fields:
+                raise ValueError(f"CSV file is missing required columns: {', '.join(missing_fields)}")
+            
+            for row in reader:
+                exercise_data = {
+                    'exerciseName': row.get('exerciseName', '').strip(),
+                    'exerciseDescription': row.get('exerciseDescription', '').strip(),
+                    'valid': True,
+                    'error': None
+                }
+                
+                # Validate row data
+                if not exercise_data['exerciseName']:
+                    exercise_data['valid'] = False
+                    exercise_data['error'] = 'Exercise name is required'
+                elif not exercise_data['exerciseDescription']:
+                    exercise_data['valid'] = False
+                    exercise_data['error'] = 'Exercise description is required'
+                
+                if exercise_data['valid']:
+                    has_valid = True
+                
+                preview_data.append(exercise_data)
+                
+        except Exception as e:
+            preview_data = []
+            has_valid = False
+        
+        return preview_data, has_valid
+    
+    @staticmethod
+    def createExercisesFromPreview(preview_data, topic):
+        """
+        Create exercises from validated preview data
+        Returns number of exercises created
+        """
+        count = 0
+        for row in preview_data:
+            if row['valid']:
+                ExerciseController.createNewExercise(
+                    row['exerciseName'],
+                    row['exerciseDescription'],
+                    topic
+                )
+                count += 1
+        return count
         
 class QuestionController:
 

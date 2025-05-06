@@ -5,6 +5,7 @@ from django.contrib.auth import login
 from django.contrib import messages
 from .controllers import *
 from django.contrib.auth.decorators import login_required
+import csv, io
 
 
 def is_student(user):
@@ -266,9 +267,12 @@ def create_topic(request, classroomID):
 
 @login_required
 def topic(request, classroomID, topicID):
-
     topic = get_object_or_404(Topic, topicID=topicID)
-    return render(request, 'topic.html', {'topic': topic, 'classroomID': classroomID})
+    return render(request, 'topic.html', {
+        'topic': topic, 
+        'classroomID': classroomID,
+        'is_student': is_student(request.user)
+    })
     
 @login_required
 def add_existing_topics(request, classroomID):
@@ -508,6 +512,128 @@ def add_existing_exercises(request, classroomID, topicID):
     })
 
 @login_required
+def import_questions(request, classroomID, topicID, exerciseID):
+    if is_student(request.user):
+        return redirect('index')
+    
+    exercise = get_object_or_404(Exercise, exerciseID = exerciseID)
+    form = ImportQuestionForm()
+    preview_data = []
+
+    VALID_TYPES = dict(Question.QUESTION_TYPES).keys()
+
+    if request.method == 'POST':
+        if 'confirm' in request.POST:
+            preview_data = request.session.get('preview_questions', [])
+            created = 0;
+            for row in preview_data:
+                if row['valid']:
+                    QuestionController.createNewQuestion(
+                        row['questionType'],
+                        row['questionPrompt'],
+                        row['correctAnswer'],
+                        exercise
+                    )
+                    created += 1
+            messages.success(request, f"{created} question(s) successfully imported.")
+            request.session.pop('preview_questions', None)
+            return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID)
+        else:
+            form = ImportQuestionForm(request.POST, request.FILES);
+            if form.is_valid():
+                file = request.FILES['csv_file']
+                print(f"Uploaded file name: {file.name}")
+                try:
+                    csv_file = file.read().decode('utf-8')
+                    io_string = io.StringIO(csv_file)
+                    reader = csv.DictReader(io_string)
+
+                    for row in reader:
+                        type = row.get("questionType", "").strip()
+                        prompt = row.get("questionPrompt", "").strip()
+                        answer = row.get("correctAnswer", "").strip()
+
+                        entry = {
+                            "questionType": type,
+                            "questionPrompt": prompt,
+                            "correctAnswer": answer,
+                            "valid": True,
+                            "error": ""
+                        }
+
+                        if not type or not prompt or not answer:
+                            entry['valid'] = False
+                            entry['error'] = "Missing required fields"
+                        elif type not in VALID_TYPES:
+                            entry['valid'] = False
+                            entry['error'] = f"Invalid questionType: '{type}'"
+                        elif Question.objects.filter(questionType=type, questionPrompt=prompt, correctAnswer=answer, exercise=exercise).exists():
+                            entry['valid'] = False
+                            entry['error'] = "Prompt already exists in exercise"
+                        
+                        preview_data.append(entry)
+
+                    request.session['preview_questions'] = preview_data
+
+                except Exception as e:
+                    print(f"Error: {e}")
+                    messages.error(request, "Error reading CSV file")
+                    return redirect(request.path)
+    has_valid = any(row['valid'] for row in preview_data)
+    return render(request, 'import_questions.html', {
+        'form': form,
+        'preview_data': preview_data,
+        'has_valid': has_valid,
+        'classroomID': classroomID,
+        'topicID': topicID,
+        'exerciseID': exerciseID
+    })
+
+@login_required
+def import_exercises(request, classroomID, topicID):
+    """View for importing exercises from a CSV file"""
+    if is_student(request.user):
+        return redirect('index')
+    
+    topic = get_object_or_404(Topic, topicID=topicID)
+    form = ImportExerciseForm()  # Instantiate the form
+    preview_data = None
+    has_valid = False
+    
+    if request.method == 'POST':
+        if 'confirm' in request.POST:
+            # Get the preview data from session
+            preview_data = request.session.get('exercise_preview_data', [])
+            count = ExerciseController.createExercisesFromPreview(preview_data, topic)
+            if count > 0:
+                messages.success(request, f'Successfully imported {count} exercises!')
+            else:
+                messages.warning(request, 'No valid exercises were found to import.')
+            # Clear session data
+            if 'exercise_preview_data' in request.session:
+                del request.session['exercise_preview_data']
+            return redirect('topic', classroomID=classroomID, topicID=topicID)
+            
+        elif 'csv_file' in request.FILES:
+            form = ImportExerciseForm(request.POST, request.FILES)  # Instantiate with POST data
+            if form.is_valid():
+                csv_file = request.FILES['csv_file']
+                if not csv_file.name.endswith('.csv'):
+                    messages.error(request, 'Please upload a CSV file.')
+                else:
+                    preview_data, has_valid = ExerciseController.importExercisesFromCSV(csv_file, topic)
+                    # Store preview data in session for confirmation step
+                    request.session['exercise_preview_data'] = preview_data
+    
+    return render(request, 'import_exercises.html', {
+        'form': form,  # Pass the form to the template
+        'preview_data': preview_data,
+        'has_valid': has_valid,
+        'classroomID': classroomID,
+        'topicID': topicID,
+        'topic': topic
+    })
+
 def save_question(request, classroomID):
     """View for saving a question without associating it with an exercise"""
     if is_student(request.user):

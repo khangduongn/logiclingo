@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %} 
+<div class="container mt-4">
+    <h2 class="mb-4">Import Questions from CSV File</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.as_p }}
+        </div>
+        <button type="submit" class="btn btn-primary">Preview</button>
+    </form>
+    <p class="mt-3 text-muted">CSV file must include questionType, questionPrompt, and correctAnswer</p>
+
+    {% if preview_data %}
+        <h3 class="mt-4">Preview</h3>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="confirm" value="true">
+            <table class="table table-bordered mt-2">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Type</th>
+                        <th>Prompt</th>
+                        <th>Answer</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in preview_data %}
+                        <tr class="table-{% if row.valid %}success{% else %}danger{% endif %}">
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ row.questionType }}</td>
+                            <td>{{ row.questionPrompt }}</td>
+                            <td>{{ row.correctAnswer }}</td>
+                            <td>
+                                {% if row.valid %}
+                                    <span class="text-success">Valid</span>
+                                {% else %}
+                                    <span class="text-danger">Invalid</span> ({{ row.error }})
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button type="submit" class="btn btn-success" {% if not has_valid %}disabled{% endif %}>Import</button>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}
