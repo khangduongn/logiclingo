@@ -155,9 +155,7 @@ def join_classroom(request):
             classroom_id = request.POST.get('classroom_id')
             classroom = get_object_or_404(Classroom, classroomID=classroom_id)
             
-            # Check access restrictions for students
             if is_student(request.user) and not classroom.open:
-                # Check if the student is invited
                 invited = InvitedStudent.objects.filter(
                     classroom=classroom, 
                     email=request.user.email
@@ -167,7 +165,6 @@ def join_classroom(request):
                     messages.error(request, "You are not invited to this classroom.")
                     return redirect('index')
             
-            # Add user to classroom
             if is_student(request.user):
                 classroom.students.add(request.user.student)
             else:
@@ -182,9 +179,7 @@ def join_classroom(request):
             try:
                 classroom = Classroom.objects.get(classroomCode=classroom_code)
                 
-                # Check access restrictions for students
                 if is_student(request.user) and not classroom.open:
-                    # Check if the student is invited
                     invited = InvitedStudent.objects.filter(
                         classroom=classroom, 
                         email=request.user.email
@@ -219,9 +214,7 @@ def confirm_join_classroom(request):
     
     classroom = get_object_or_404(Classroom, classroomCode=classroom_code)
     
-    # Check access restrictions for students
     if is_student(request.user) and not classroom.open:
-        # Check if the student is invited
         invited = InvitedStudent.objects.filter(
             classroom=classroom, 
             email=request.user.email
@@ -516,7 +509,7 @@ def import_questions(request, classroomID, topicID, exerciseID):
     if is_student(request.user):
         return redirect('index')
     
-    exercise = get_object_or_404(Exercise, exerciseID = exerciseID)
+    exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
     form = ImportQuestionForm()
     preview_data = []
 
@@ -532,7 +525,8 @@ def import_questions(request, classroomID, topicID, exerciseID):
                         row['questionType'],
                         row['questionPrompt'],
                         row['correctAnswer'],
-                        exercise
+                        exercise,
+                        request.user.instructor
                     )
                     created += 1
             messages.success(request, f"{created} question(s) successfully imported.")
@@ -567,7 +561,12 @@ def import_questions(request, classroomID, topicID, exerciseID):
                         elif type not in VALID_TYPES:
                             entry['valid'] = False
                             entry['error'] = f"Invalid questionType: '{type}'"
-                        elif Question.objects.filter(questionType=type, questionPrompt=prompt, correctAnswer=answer, exercise=exercise).exists():
+                        elif Question.objects.filter(
+                            questionType=type, 
+                            questionPrompt=prompt, 
+                            correctAnswer=answer, 
+                            exercises=exercise
+                        ).exists():
                             entry['valid'] = False
                             entry['error'] = "Prompt already exists in exercise"
                         
@@ -596,13 +595,12 @@ def import_exercises(request, classroomID, topicID):
         return redirect('index')
     
     topic = get_object_or_404(Topic, topicID=topicID)
-    form = ImportExerciseForm()  # Instantiate the form
+    form = ImportExerciseForm() 
     preview_data = None
     has_valid = False
     
     if request.method == 'POST':
         if 'confirm' in request.POST:
-            # Get the preview data from session
             preview_data = request.session.get('exercise_preview_data', [])
             count = ExerciseController.createExercisesFromPreview(preview_data, topic)
             if count > 0:
@@ -622,11 +620,10 @@ def import_exercises(request, classroomID, topicID):
                     messages.error(request, 'Please upload a CSV file.')
                 else:
                     preview_data, has_valid = ExerciseController.importExercisesFromCSV(csv_file, topic)
-                    # Store preview data in session for confirmation step
                     request.session['exercise_preview_data'] = preview_data
     
     return render(request, 'import_exercises.html', {
-        'form': form,  # Pass the form to the template
+        'form': form,
         'preview_data': preview_data,
         'has_valid': has_valid,
         'classroomID': classroomID,
@@ -648,7 +645,6 @@ def save_question(request, classroomID):
             question_prompt = form.cleaned_data['questionPrompt']
             correct_answer = form.cleaned_data['correctAnswer']
             
-            # Create a saved question using the controller
             question = QuestionController.saveQuestion(
                 question_type, 
                 question_prompt, 
@@ -751,7 +747,6 @@ def import_topics(request, classroomID):
     
     classroom = get_object_or_404(Classroom, classroomID=classroomID)
     
-    # Check if the instructor is associated with this classroom
     if not classroom.instructors.filter(userID=request.user.userID).exists():
         messages.error(request, "You don't have permission to import topics for this classroom.")
         return redirect('classroom', id=classroomID)
@@ -763,18 +758,14 @@ def import_topics(request, classroomID):
         
         csv_file = request.FILES['csv_file']
         
-        # Process the CSV file following the sequence diagram
         success, topic_count, error = TopicController.createNewTopics(csv_file, classroom)
         
-        # Handle file read errors as per sequence diagram
         if not success:
             messages.error(request, error)
             return render(request, 'import_topics.html', {'classroomID': classroomID})
         
-        # Success message
         if topic_count > 0:
             messages.success(request, f"Successfully imported {topic_count} topics!")
-            # goToAddToR as per sequence diagram - redirect to the classroom page
             return redirect('classroom', id=classroomID)
         else:
             messages.warning(request, "No topics were found in the CSV file. Please check your file format and try again.")

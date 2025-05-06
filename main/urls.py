@@ -20,6 +20,7 @@ urlpatterns = [
     path('classroom/<int:classroomID>/topic/<int:topicID>/delete/', views.delete_topic, name='delete_topic'),
     path('classroom/<int:classroomID>/topic/<int:topicID>/exercise/<int:exerciseID>/add_existing_questions/', views.add_existing_questions, name='add_existing_questions'),
     path('classroom/<int:classroomID>/topic/<int:topicID>/exercise/<int:exerciseID>/create_question/', views.create_question, name='create_question'),
+    path('classroom/<int:classroomID>/topic/<int:topicID>/exercise/<int:exerciseID>/import_questions/', views.import_questions, name='import_questions'),
     path('classroom/<int:classroomID>/topic/<int:topicID>/exercise/<int:exerciseID>/question/<int:questionID>/', views.question, name='question'),
     path('classroom/<int:classroomID>/topic/<int:topicID>/exercise/<int:exerciseID>/question/<int:questionID>/modify/', views.modify_question, name='modify_question'),
     path('classroom/<int:classroomID>/topic/<int:topicID>/add_existing_exercises/', views.add_existing_exercises, name='add_existing_exercises'),

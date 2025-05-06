@@ -127,13 +127,19 @@ class Topic(models.Model):
         """
         Create a new Topic as specified in the sequence diagram for UC-048
         """
+        # Since we need the created_by field, we have to get the first instructor from the classroom
+        instructor = classroom.instructors.first()
+        if not instructor:
+            raise ValueError("Classroom must have at least one instructor")
+
         topic = Topic(
             topicName=topicName,
             topicDescription=topicDescription,
             topicNote=topicNote,
-            classroom=classroom
+            created_by=instructor
         )
-        topic.write()
+        topic.save()  # Save first to get an ID
+        topic.classrooms.add(classroom)  # Then add the M2M relationship
         return topic
         
     def write(self):

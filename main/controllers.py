@@ -127,6 +127,12 @@ class TopicController:
             has_exercises = all(field in header for field in ['exerciseName', 'exerciseDescription'])
             has_questions = all(field in header for field in ['questionType', 'questionPrompt', 'correctAnswer'])
             
+            # Get instructor for creating objects
+            instructor = classroom.instructors.first()
+            if not instructor:
+                errors.append("Classroom has no instructors available to create content")
+                return success_count, exercise_count, question_count, error_rows, errors
+            
             # Process rows
             current_topic = None
             current_exercise = None
@@ -145,15 +151,16 @@ class TopicController:
                     question_prompt = row.get('questionPrompt', '').strip() if has_questions else ''
                     correct_answer = row.get('correctAnswer', '').strip() if has_questions else ''
                     
-                    # If we have a topic name, create a new topic (or reuse existing if unchanged)
+                    # If we have a topic name, create a new topic
                     if topic_name and topic_description and topic_note:
                         # Create new topic
                         current_topic = Topic.objects.create(
                             topicName=topic_name,
                             topicDescription=topic_description,
                             topicNote=topic_note,
-                            classroom=classroom
+                            created_by=instructor
                         )
+                        current_topic.classrooms.add(classroom)
                         success_count += 1
                         current_exercise = None  # Reset current exercise since we have a new topic
                     
@@ -162,8 +169,9 @@ class TopicController:
                         current_exercise = Exercise.objects.create(
                             exerciseName=exercise_name,
                             exerciseDescription=exercise_description,
-                            topic=current_topic
+                            created_by=instructor
                         )
+                        current_exercise.topics.add(current_topic)
                         exercise_count += 1
                     
                     # If we have question data and a valid current exercise, create the question
@@ -175,12 +183,13 @@ class TopicController:
                             continue
                             
                         # Create question
-                        Question.objects.create(
+                        question = Question.objects.create(
                             questionType=question_type,
                             questionPrompt=question_prompt,
                             correctAnswer=correct_answer,
-                            exercise=current_exercise
+                            created_by=instructor
                         )
+                        question.exercises.add(current_exercise)
                         question_count += 1
                     
                 except Exception as e:
@@ -321,12 +330,22 @@ class ExerciseController:
         Returns number of exercises created
         """
         count = 0
+        # Get the first instructor from the first classroom of the topic
+        instructor = None
+        if topic.classrooms.exists():
+            classroom = topic.classrooms.first()
+            instructor = classroom.instructors.first()
+        
+        if not instructor:
+            return 0  # Cannot create exercises without an instructor
+            
         for row in preview_data:
             if row['valid']:
                 ExerciseController.createNewExercise(
                     row['exerciseName'],
                     row['exerciseDescription'],
-                    topic
+                    topic,
+                    instructor
                 )
                 count += 1
         return count
@@ -382,10 +401,11 @@ class QuestionController:
             questionType=question.questionType,
             questionPrompt=question.questionPrompt,
             correctAnswer=question.correctAnswer,
-            exercise=exercise,
             created_by=question.created_by,
             is_saved=False
         )
+        # Link to the exercise using the many-to-many relationship
+        new_question.exercises.add(exercise)
         
         # Also copy any answers if this is a multiple choice question
         if question.questionType == 'multiple_choice':
