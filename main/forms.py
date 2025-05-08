@@ -141,3 +141,13 @@ class ImportQuestionForm(forms.Form):
 
 class ImportExerciseForm(forms.Form):
     csv_file = forms.FileField(label="Upload CSV file")
+
+class MultipleChoiceQuestionForm(forms.ModelForm):
+    class Meta:
+        model = MultipleChoice
+        fields = ['questionPrompt', 'choiceA', 'choiceB', 'choiceC', 'choiceD', 'correctAnswer']
+
+class TrueFalseQuestionForm(forms.ModelForm):
+    class Meta:
+        model = TrueFalse
+        fields = ['questionPrompt', 'correctAnswer']

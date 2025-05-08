@@ -184,6 +184,15 @@ class Question(models.Model):
 
     def __str__(self):
         return self.questionPrompt
+    
+class MultipleChoice(Question):
+    choiceA = models.CharField(max_length=255)
+    choiceB = models.CharField(max_length=255)
+    choiceC = models.CharField(max_length=255)
+    choiceD = models.CharField(max_length=255)
+
+class TrueFalse(Question):
+    pass
 
 class Answer(models.Model):
     answerID = models.AutoField(primary_key=True)

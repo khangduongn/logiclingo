@@ -6,7 +6,9 @@ from django.contrib import messages
 from .controllers import *
 from django.contrib.auth.decorators import login_required
 import csv, io
-
+from django.http import JsonResponse, HttpResponseForbidden
+from django.template.loader import render_to_string
+from django.views.decorators.http import require_GET
 
 def is_student(user):
     return hasattr(user, 'student')
@@ -297,6 +299,12 @@ def add_existing_topics(request, classroomID):
         'no_existing_topics': not form.fields['topics'].queryset.exists(),
     })
 
+QUESTION_TYPE_FORMS= {
+    'multiple_choice': MultipleChoiceQuestionForm,
+    'true_false': TrueFalseQuestionForm,
+}
+
+@login_required
 def create_question(request, classroomID, topicID, exerciseID):
     # If the user is a student, redirect them back
     if is_student(request.user):
@@ -317,8 +325,28 @@ def create_question(request, classroomID, topicID, exerciseID):
             if question:
                 return redirect('question', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID, questionID=question.questionID)
 
-    return render(request, 'create_question.html', {'form': form, 'classroomID': classroomID, 'topicID': topicID, 'exerciseID': exerciseID})
+    return render(request, 'create_question_new.html', {'form': form, 'classroomID': classroomID, 'topicID': topicID, 'exerciseID': exerciseID})
 
+@login_required
+@require_GET
+def get_question_form(request):
+    
+    #if student then send error response
+    if is_student(request.user):
+        return HttpResponseForbidden("You must be an instructor to access this resource.")
+    
+    question_type = request.GET.get('question_type')
+    
+    if question_type == 'multiple_choice':
+        form = MultipleChoiceQuestionForm()
+
+    elif question_type == 'true_false':
+        form = TrueFalseQuestionForm()
+
+    else:
+        return JsonResponse({'form_html': ''})
+
+    return JsonResponse({'form_html': render_to_string('question_form.html', {'form': form}, request=request)})
 
 @login_required
 def question(request, classroomID, topicID, exerciseID, questionID):

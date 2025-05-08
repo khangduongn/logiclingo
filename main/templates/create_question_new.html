@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %} Create Question {% endblock %}
+
+{% block content %} 
+<h2>Create Question</h2>
+
+<label for="questionType">Select Question Type:</label>
+<select id="questionType" name="questionType">
+  <option value="">-- Select --</option>
+  <option value="multiple_choice">Multiple Choice</option>
+  <option value="true_false">True/False</option>
+</select>
+
+<div id="formContainer">
+</div>
+
+<script>
+    document.getElementById('questionType').addEventListener('change', function () {
+
+        if (!this.value) return;
+
+        fetch(`/question/get_form/?question_type=${this.value}`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('formContainer').innerHTML = data.form_html;
+        });
+        });
+</script>
+{% endblock %}
