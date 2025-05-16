@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load logical_symbols %}
+
+{% block title %}Create Question{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Create Question</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="{{ form.questionType.id_for_label }}" class="form-label">Question Type:</label>
+            {{ form.questionType }}
+            {% if form.questionType.errors %}
+                <div class="alert alert-danger">
+                    {{ form.questionType.errors }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.questionPrompt.id_for_label }}" class="form-label">Question Prompt:</label>
+            {{ form.questionPrompt }}
+            {% if form.questionPrompt.errors %}
+                <div class="alert alert-danger">
+                    {{ form.questionPrompt.errors }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.correctAnswer.id_for_label }}" class="form-label">Correct Answer:</label>
+            {% include 'includes/logical_symbols_input.html' with field=form.correctAnswer %}
+            {% if form.correctAnswer.errors %}
+                <div class="alert alert-danger">
+                    {{ form.correctAnswer.errors }}
+                </div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Create Question</button>
+    </form>
+</div>
+{% endblock %} 

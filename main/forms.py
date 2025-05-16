@@ -56,25 +56,62 @@ class TopicForm(forms.ModelForm):
     class Meta:
         model = Topic
         fields = ['topicName', 'topicDescription', 'topicNote']  
+        widgets = {
+            'topicName': forms.TextInput(attrs={'maxlength': '100'}),
+            'topicDescription': forms.Textarea(attrs={'maxlength': '500', 'rows': 4}),
+            'topicNote': forms.Textarea(attrs={'maxlength': '1000', 'rows': 4}),
+        }
 
 class QuestionForm(forms.ModelForm):
     
     class Meta:
         model = Question
         fields = ['questionType', 'questionPrompt', 'correctAnswer']  
+        widgets = {
+            'questionPrompt': forms.Textarea(attrs={
+                'maxlength': '1000', 
+                'rows': 4,
+                'class': 'logical-symbols-input'
+            }),
+            'correctAnswer': forms.Textarea(attrs={
+                'maxlength': '500', 
+                'rows': 2,
+                'class': 'logical-symbols-input'
+            }),
+        }
 
 class ModifyQuestionForm(forms.ModelForm):
     class Meta:
         model = Question
         fields = ['questionType', 'questionPrompt', 'correctAnswer']
+        widgets = {
+            'questionPrompt': forms.Textarea(attrs={
+                'maxlength': '1000', 
+                'rows': 4,
+                'class': 'logical-symbols-input'
+            }),
+            'correctAnswer': forms.Textarea(attrs={
+                'maxlength': '500', 
+                'rows': 2,
+                'class': 'logical-symbols-input'
+            }),
+        }
 
 class SaveQuestionForm(forms.ModelForm):
     class Meta:
         model = Question
         fields = ['questionType', 'questionPrompt', 'correctAnswer']
         widgets = {
-            'questionPrompt': forms.Textarea(attrs={'rows': 4}),
-            'correctAnswer': forms.Textarea(attrs={'rows': 2}),
+            'questionPrompt': forms.Textarea(attrs={
+                'maxlength': '1000', 
+                'rows': 4,
+                'class': 'logical-symbols-input'
+            }),
+            'correctAnswer': forms.Textarea(attrs={
+                'maxlength': '500', 
+                'rows': 2,
+                'class': 'logical-symbols-input'
+            }),
         }
 
 class AddQuestionToExerciseForm(forms.Form):
@@ -100,11 +137,19 @@ class ExerciseForm(forms.ModelForm):
     class Meta:
         model = Exercise
         fields = ['exerciseName', 'exerciseDescription']
+        widgets = {
+            'exerciseName': forms.TextInput(attrs={'maxlength': '200'}),
+            'exerciseDescription': forms.Textarea(attrs={'maxlength': '1000', 'rows': 4}),
+        }
 
 class ModifyExerciseForm(forms.ModelForm):
     class Meta:
         model = Exercise
         fields = ['exerciseName', 'exerciseDescription']
+        widgets = {
+            'exerciseName': forms.TextInput(attrs={'maxlength': '200'}),
+            'exerciseDescription': forms.Textarea(attrs={'maxlength': '1000', 'rows': 4}),
+        }
 
 class AddExistingTopicsForm(forms.Form):
     topics = forms.ModelMultipleChoiceField(
@@ -126,15 +171,22 @@ class AddExistingQuestionsForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
         required=True
     )
+
 class AnswerForm(forms.Form):
-    answer = forms.CharField(widget=forms.Textarea, required=True)
+    answer = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'maxlength': '500',
+            'rows': 2,
+            'class': 'logical-symbols-input'
+        }), 
+        required=True
+    )
 
     def clean_answer(self):
         answer = self.cleaned_data['answer'].strip()
         if not answer:
             raise forms.ValidationError("Your answer cannot be empty")
         return answer
-
 
 class ImportQuestionForm(forms.Form):
     csv_file = forms.FileField(label="Upload CSV file")
