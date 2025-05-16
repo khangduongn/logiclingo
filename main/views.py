@@ -527,6 +527,8 @@ def import_questions(request, classroomID, topicID, exerciseID):
     if is_student(request.user):
         return redirect('index')
     
+    classroom = get_object_or_404(Classroom, classroomID=classroomID)
+    topic = get_object_or_404(Topic, topicID=topicID)
     exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
     form = ImportQuestionForm()
     preview_data = []
@@ -602,8 +604,11 @@ def import_questions(request, classroomID, topicID, exerciseID):
         'preview_data': preview_data,
         'has_valid': has_valid,
         'classroomID': classroomID,
+        'classroom': classroom,
         'topicID': topicID,
-        'exerciseID': exerciseID
+        'topic': topic,
+        'exerciseID': exerciseID,
+        'exercise': exercise
     })
 
 @login_required
@@ -612,39 +617,82 @@ def import_exercises(request, classroomID, topicID):
     if is_student(request.user):
         return redirect('index')
     
+    classroom = get_object_or_404(Classroom, classroomID=classroomID)
     topic = get_object_or_404(Topic, topicID=topicID)
+
+    if not classroom.instructors.filter(userID=request.user.userID).exists():
+        messages.error(request, "You don't have permission to import topics for this classroom.")
+        return redirect('classroom', id=classroomID)
+
     form = ImportExerciseForm() 
-    preview_data = None
-    has_valid = False
+    preview_data = []
     
     if request.method == 'POST':
         if 'confirm' in request.POST:
-            preview_data = request.session.get('exercise_preview_data', [])
-            count = ExerciseController.createExercisesFromPreview(preview_data, topic)
-            if count > 0:
-                messages.success(request, f'Successfully imported {count} exercises!')
-            else:
-                messages.warning(request, 'No valid exercises were found to import.')
-            # Clear session data
-            if 'exercise_preview_data' in request.session:
-                del request.session['exercise_preview_data']
+            preview_data = request.session.get('preview_exercises', [])
+            created = 0
+
+            for row in preview_data:
+                if row['valid']:
+                    ExerciseController.createNewExercise(
+                        row['exerciseName'],
+                        row['exerciseDescription'],
+                        topic,
+                        request.user.instructor
+                    )
+                    created +=1
+            messages.success(request, f"{created} exercise(s) successfully imported.")
+            request.session.pop('preview_exercises', None)
             return redirect('topic', classroomID=classroomID, topicID=topicID)
-            
-        elif 'csv_file' in request.FILES:
-            form = ImportExerciseForm(request.POST, request.FILES)  # Instantiate with POST data
+        else:
+            form = ImportExerciseForm(request.POST, request.FILES)
             if form.is_valid():
-                csv_file = request.FILES['csv_file']
-                if not csv_file.name.endswith('.csv'):
-                    messages.error(request, 'Please upload a CSV file.')
-                else:
-                    preview_data, has_valid = ExerciseController.importExercisesFromCSV(csv_file, topic)
-                    request.session['exercise_preview_data'] = preview_data
+                file = request.FILES['csv_file']
+                try:
+                    csv_file = file.read().decode('utf-8')
+                    io_string = io.StringIO(csv_file)
+                    reader = csv.DictReader(io_string)
+
+                    for row in reader:
+                        name = row.get('exerciseName', "").strip()
+                        description = row.get('exerciseDescription', "").strip()
+
+                        entry = {
+                            "exerciseName": name,
+                            "exerciseDescription": description,
+                            "valid": True,
+                            "error": ""
+                        }
+
+                        if not name or not description:
+                            entry['valid'] = False
+                            entry['error'] = "Missing required fields"
+                        elif len(name) > 100:
+                            entry['valid'] = False
+                            entry['error'] = "Exercise name is too long"
+                        elif len(description) > 500:
+                            entry['valid'] = False
+                            entry['error'] = "Exercise description is too long"
+                        elif Exercise.objects.filter(
+                            exerciseName=name,
+                            topics=topic
+                        ).exists():
+                            entry['valid'] = False
+                            entry['error'] = "Exercise name already exists for this topic"
+                        
+                        preview_data.append(entry)
+                    request.session['preview_exercises'] = preview_data
+                except Exception as e:
+                    messages.error(request, f"Error reading CSV file: {str(e)}")
+                    return redirect(request.path)
     
+    has_valid = any(row.get('valid') for row in preview_data)
     return render(request, 'import_exercises.html', {
         'form': form,
         'preview_data': preview_data,
         'has_valid': has_valid,
         'classroomID': classroomID,
+        'classroom': classroom,
         'topicID': topicID,
         'topic': topic
     })

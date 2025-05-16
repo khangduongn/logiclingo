@@ -279,49 +279,57 @@ class ExerciseController:
         Returns a tuple of (preview_data, has_valid)
         """
         preview_data = []
-        has_valid = False
+        error_rows = []
+        errors = []
+
+        if not file.name.endswith('.csv'):
+            errors.append("File must be a CSV file")
+            return error_rows, errors
         
         try:
             file_data = file.read().decode('utf-8')
-            csv_data = io.StringIO(file_data)
+        except UnicodeDecodeError:
+            errors.append("Unable to read the file. Please ensure it's a valid CSV file with UTF-8 encoding.")
+            return error_rows, errors
+        
+        csv_data = io.StringIO(file_data)
+
+        try:
             reader = csv.DictReader(csv_data)
             
             required_fields = ['exerciseName', 'exerciseDescription']
             header = reader.fieldnames
             
             if not header:
-                raise ValueError("CSV file appears to be empty")
+                errors.append("CSV file appears to be empty")
+                return error_rows, errors
                 
             missing_fields = [field for field in required_fields if field not in header]
             if missing_fields:
-                raise ValueError(f"CSV file is missing required columns: {', '.join(missing_fields)}")
+                errors.append(f"CSV file is missing required columns: {', '.join(missing_fields)}")
+                return error_rows, errors
             
-            for row in reader:
-                exercise_data = {
-                    'exerciseName': row.get('exerciseName', '').strip(),
-                    'exerciseDescription': row.get('exerciseDescription', '').strip(),
-                    'valid': True,
-                    'error': None
-                }
-                
-                # Validate row data
-                if not exercise_data['exerciseName']:
-                    exercise_data['valid'] = False
-                    exercise_data['error'] = 'Exercise name is required'
-                elif not exercise_data['exerciseDescription']:
-                    exercise_data['valid'] = False
-                    exercise_data['error'] = 'Exercise description is required'
-                
-                if exercise_data['valid']:
-                    has_valid = True
-                
-                preview_data.append(exercise_data)
-                
+            current_exercise = None
+            
+            for row_num, row in enumerate(reader, start=2):
+                try: 
+                    exercise_name = row.get('exerciseName', '').strip()
+                    exercise_description = row.get('exerciseDescription', '').strip()
+
+                    if exercise_name and exercise_description:
+                        current_exercise = Exercise.objects.create(
+                            exerciseName = exercise_name,
+                            exerciseDescription = exercise_description,
+                        )
+                        current_exercise.topics.add(topic)
+                        current_exercise = None
+                except Exception as e:
+                    error_rows.append(f"Row {row_num}: {str(e)}")
+
         except Exception as e:
-            preview_data = []
-            has_valid = False
+            errors.append(f"Error processing CSV file: {str(e)}")
         
-        return preview_data, has_valid
+        return error_rows, errors
     
     @staticmethod
     def createExercisesFromPreview(preview_data, topic):
@@ -367,11 +375,10 @@ class QuestionController:
                 created_by=instructor,
                 is_saved=is_saved
             )
-            question.exercises.add(exercise)
+            if exercise:
+                question.exercises.add(exercise)
             return question
-
-        else:
-            return None
+        return None
             
     @staticmethod
     def saveQuestion(questionType: str, questionPrompt: str, correctAnswer: str, instructor):
