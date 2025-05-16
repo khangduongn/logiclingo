@@ -1,59 +1,109 @@
 {% extends "base.html" %}
 {% load custom_filters %}
 
-{% block title %}{{ topic.topicName }}{% endblock %}
+{% block title %} Topic {{ topic.topicID }} {% endblock %}
 
-{% block content %}
+{% block content %} 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>{{ topic.topicName }}</h2>
-        {% if request.user|is_instructor %}
-        <div class="btn-group">
-            <a href="{% url 'edit_topic' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-primary">Edit Topic</a>
-            <a href="{% url 'delete_topic' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-danger">Delete Topic</a>
+        <div>
+            <h2 class="mb-1">{{ topic.topicName }}</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'classroom' id=classroomID %}">Classroom</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Topic</li>
+                </ol>
+            </nav>
         </div>
+        {% if request.user|is_instructor %}
+            <div class="btn-group">
+                <a href="{% url 'edit_topic' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Edit Topic
+                </a>
+                <a href="{% url 'delete_topic' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Delete Topic
+                </a>
+            </div>
         {% endif %}
     </div>
 
-    <div class="card mb-4">
+    <div class="card mb-4 shadow-sm">
         <div class="card-body">
-            <h5 class="card-title">Description</h5>
+            <h5 class="card-title">
+                <i class="fas fa-info-circle"></i> Description
+            </h5>
             <p class="card-text">{{ topic.topicDescription }}</p>
-        </div>
-    </div>
-
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Notes</h5>
-            <p class="card-text">{{ topic.topicNote }}</p>
-        </div>
-    </div>
-
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Exercises</h5>
-            {% if request.user|is_instructor %}
-            <a href="{% url 'add_existing_exercises' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-success mb-3">Add Existing Exercises</a>
-            <a href="{% url 'create_exercise' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-success mb-3">Create New Exercise</a>
+            {% if topic.topicNote %}
+                <h6 class="mt-3">
+                    <i class="fas fa-sticky-note"></i> Notes
+                </h6>
+                <p class="card-text">{{ topic.topicNote }}</p>
             {% endif %}
-            <a href="{% url 'create_exercise' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-success mb-3">Add Exercise</a>
-            <a href="{% url 'import_exercises' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-secondary mb-3">Import Exercises</a>
+        </div>
+    </div>
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list-check"></i> Exercises
+                </h5>
+                {% if request.user|is_instructor %}
+                    <div class="btn-group">
+                        <a href="{% url 'create_exercise' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Create Exercise
+                        </a>
+                        <a href="{% url 'add_existing_exercises' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-success">
+                            <i class="fas fa-plus-circle"></i> Add Existing Exercises
+                        </a>
+                        <a href="{% url 'import_exercises' classroomID=classroomID topicID=topic.topicID %}" class="btn btn-secondary">
+                            <i class="fas fa-file-import"></i> Import Exercises
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
             {% if topic.exercises.all %}
                 <div class="list-group">
                     {% for exercise in topic.exercises.all %}
-                        <a href="{% url 'exercise' classroomID=classroomID topicID=topic.topicID exerciseID=exercise.exerciseID %}" 
-                           class="list-group-item list-group-item-action">
-                            {{ exercise.exerciseName }}
-                        </a>
+                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ exercise.exerciseName }}</h6>
+                                <p class="mb-1 text-muted">{{ exercise.exerciseDescription|truncatechars:100 }}</p>
+                                <small class="text-muted">{{ exercise.questions.count }} question{{ exercise.questions.count|pluralize }}</small>
+                            </div>
+                            <div class="btn-group">
+                                <a href="{% url 'exercise' classroomID=classroomID topicID=topic.topicID exerciseID=exercise.exerciseID %}" 
+                                   class="btn btn-outline-primary">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                {% if request.user|is_instructor %}
+                                    <a href="{% url 'modify_exercise' classroomID=classroomID topicID=topic.topicID exerciseID=exercise.exerciseID %}" 
+                                       class="btn btn-outline-secondary">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
                     {% endfor %}
                 </div>
             {% else %}
-                <p class="text-muted">No exercises yet.</p>
+                {% if request.user|is_instructor %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No exercises have been added to this topic yet. Use the buttons above to add exercises.
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> This topic has no exercises yet.
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
     </div>
-    <a href="{% url 'classroom' id=classroomID %}" class="btn btn-light">Back to Classroom</a>
 
-</div>
-
-{% endblock %} 
+    <div class="d-flex justify-content-between">
+        <a href="{% url 'classroom' id=classroomID %}" class="btn btn-light">
+            <i class="fas fa-arrow-left"></i> Back to Classroom
+        </a>
+    </div>
+</div>    
+{% endblock content %} 

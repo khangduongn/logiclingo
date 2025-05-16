@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block title %}Import Topics from CSV{% endblock %}
 
 {% block content %}
@@ -27,25 +28,11 @@
                 <li><strong>topicNote</strong> - Notes for the topic</li>
             </ul>
             
-            <h6 class="mt-3">Optional Exercise Fields:</h6>
-            <ul>
-                <li><strong>exerciseName</strong> - Name of the exercise</li>
-                <li><strong>exerciseDescription</strong> - Description of the exercise</li>
-            </ul>
-            
-            <h6 class="mt-3">Optional Question Fields:</h6>
-            <ul>
-                <li><strong>questionType</strong> - Type of question (must be one of: fill_blank, click_drag, matching, ordering, translating, multiple_choice, true_false)</li>
-                <li><strong>questionPrompt</strong> - The question text</li>
-                <li><strong>correctAnswer</strong> - The correct answer</li>
-            </ul>
-            
             <div class="alert alert-info mt-3">
-                <p class="mb-0"><strong>Note:</strong> The first row should contain column headers. To include exercises and questions, all respective fields must be present.</p>
+                <p class="mb-0"><strong>Note:</strong> The first row should contain column headers.</p>
             </div>
             
             <a href="#" class="btn btn-sm btn-outline-secondary" onclick="downloadSampleCSV()">Download Sample CSV</a>
-            <a href="#" class="btn btn-sm btn-outline-primary" onclick="downloadCompleteCSV()">Download Full Sample (with exercises & questions)</a>
         </div>
     </div>
     
@@ -57,15 +44,63 @@
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="mb-3">
-                    <label for="csv_file" class="form-label">Select CSV File</label>
-                    <input type="file" class="form-control" id="csv_file" name="csv_file" accept=".csv" required>
-                    <div class="form-text">Only CSV files are accepted (.csv)</div>
+                    {{ form.csv_file.label_tag }}
+                    {{ form.csv_file }}
+                    {% if form.csv_file.help_text %}
+                        <small class="form-text text-muted">{{ form.csv_file.help_text }}</small>
+                    {% endif %}
                 </div>
-                <button type="submit" class="btn btn-primary">Import Topics</button>
+                <button type="submit" class="btn btn-primary">Preview Topics</button>
                 <a href="{% url 'classroom' id=classroomID %}" class="btn btn-secondary">Cancel</a>
             </form>
         </div>
     </div>
+
+    {% if preview_data %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Preview Topics</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Topic Name</th>
+                            <th>Description</th>
+                            <th>Note</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in preview_data %}
+                        <tr class="{% if row.valid %}table-success{% else %}table-danger{% endif %}">
+                            <td>{{ row.topicName }}</td>
+                            <td>{{ row.topicDescription }}</td>
+                            <td>{{ row.topicNote }}</td>
+                            <td>
+                                {% if row.valid %}
+                                    <span class="text-success">Valid</span>
+                                {% else %}
+                                    <span class="text-danger">{{ row.error }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if has_valid %}
+                <form method="post" class="mt-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="confirm" value="true">
+                    <button type="submit" class="btn btn-success">Import Valid Topics</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <script>
@@ -82,28 +117,9 @@
         document.body.removeChild(a);
     }
     
-    function downloadCompleteCSV() {
-        const csvContent = "topicName,topicDescription,topicNote,exerciseName,exerciseDescription,questionType,questionPrompt,correctAnswer\n" +
-            "Introduction to Logic,Basic concepts of logic,This is an introductory topic,Truth Tables,Practice creating truth tables,multiple_choice,Which of the following is a valid proposition?,A statement that is either true or false\n" +
-            ",,,,,,fill_blank,A statement that is either ____ or ____ is called a proposition,true; false\n" +
-            "Propositional Logic,Study of propositions and logical operators,Focus on truth tables,Logical Operators,Learn about AND OR NOT,true_false,The negation of TRUE is TRUE,false\n" +
-            ",,,,,,multiple_choice,Which symbol represents logical AND?,∧\n" +
-            "Set Theory,Study of sets and their properties,Important foundation for many areas of mathematics,Set Operations,Learn about union and intersection,matching,Match the operation with its symbol: Union,∪";
-        
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.setAttribute('hidden', '');
-        a.setAttribute('href', url);
-        a.setAttribute('download', 'full_sample_topics_with_questions.csv');
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
-    
     // Client-side validation of file type
     document.querySelector('form').addEventListener('submit', function(event) {
-        const fileInput = document.getElementById('csv_file');
+        const fileInput = document.querySelector('input[type="file"]');
         const filePath = fileInput.value;
         
         if (!filePath.endsWith('.csv')) {

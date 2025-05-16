@@ -141,3 +141,10 @@ class ImportQuestionForm(forms.Form):
 
 class ImportExerciseForm(forms.Form):
     csv_file = forms.FileField(label="Upload CSV file")
+
+class ImportTopicForm(forms.Form):
+    csv_file = forms.FileField(
+        label='CSV File',
+        help_text='Upload a CSV file containing topic data. Required columns: topicName, topicDescription, topicNote (optional)',
+        widget=forms.FileInput(attrs={'accept': '.csv'})
+    )

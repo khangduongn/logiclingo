@@ -322,12 +322,12 @@ def create_question(request, classroomID, topicID, exerciseID):
 
 @login_required
 def question(request, classroomID, topicID, exerciseID, questionID):
-
+    """View for displaying a question and handling answers"""
     question = get_object_or_404(Question, questionID=questionID)
+    exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
 
-    #student view
+    # Student view
     if is_student(request.user):
-
         form = AnswerForm()
         if request.method == 'POST':
             form = AnswerForm(request.POST)
@@ -343,12 +343,30 @@ def question(request, classroomID, topicID, exerciseID, questionID):
                     answer=answer,
                     correct=correct
                 )
-                return render(request, 'question_student_view.html', {'question': question, 'form': form, 'answer_result': answer_result, 'classroomID': classroomID, 'topicID': topicID, 'exerciseID': exerciseID})
+                return render(request, 'question_student_view.html', {
+                    'question': question, 
+                    'form': form, 
+                    'answer_result': answer_result, 
+                    'classroomID': classroomID, 
+                    'topicID': topicID, 
+                    'exerciseID': exerciseID
+                })
        
-        return render(request, 'question_student_view.html', {'question': question, 'form': form, 'classroomID': classroomID, 'topicID': topicID, 'exerciseID': exerciseID})
+        return render(request, 'question_student_view.html', {
+            'question': question, 
+            'form': form, 
+            'classroomID': classroomID, 
+            'topicID': topicID, 
+            'exerciseID': exerciseID
+        })
 
-    #instructor view
-    return render(request, 'question.html', {'question': question, 'classroomID': classroomID, 'topicID': topicID, 'exerciseID': exerciseID})
+    # Instructor view
+    return render(request, 'question.html', {
+        'question': question, 
+        'classroomID': classroomID, 
+        'topicID': topicID, 
+        'exerciseID': exerciseID
+    })
     
 
 @login_required
@@ -751,23 +769,133 @@ def import_topics(request, classroomID):
         messages.error(request, "You don't have permission to import topics for this classroom.")
         return redirect('classroom', id=classroomID)
     
+    form = ImportTopicForm()
+    preview_data = []
+    
     if request.method == 'POST':
-        if 'csv_file' not in request.FILES:
-            messages.error(request, "No file was uploaded.")
-            return render(request, 'import_topics.html', {'classroomID': classroomID})
-        
-        csv_file = request.FILES['csv_file']
-        
-        success, topic_count, error = TopicController.createNewTopics(csv_file, classroom)
-        
-        if not success:
-            messages.error(request, error)
-            return render(request, 'import_topics.html', {'classroomID': classroomID})
-        
-        if topic_count > 0:
-            messages.success(request, f"Successfully imported {topic_count} topics!")
+        if 'confirm' in request.POST:
+            # Handle the actual import after preview
+            preview_data = request.session.get('preview_topics', [])
+            created = 0
+            for row in preview_data:
+                if row['valid']:
+                    TopicController.createNewTopic(
+                        row['topicName'],
+                        row['topicDescription'],
+                        row['topicNote'],
+                        classroom,
+                        request.user.instructor
+                    )
+                    created += 1
+            messages.success(request, f"{created} topic(s) successfully imported.")
+            request.session.pop('preview_topics', None)
             return redirect('classroom', id=classroomID)
         else:
-            messages.warning(request, "No topics were found in the CSV file. Please check your file format and try again.")
+            form = ImportTopicForm(request.POST, request.FILES)
+            if form.is_valid():
+                file = request.FILES['csv_file']
+                try:
+                    csv_file = file.read().decode('utf-8')
+                    io_string = io.StringIO(csv_file)
+                    reader = csv.DictReader(io_string)
+
+                    for row in reader:
+                        name = row.get("topicName", "").strip()
+                        description = row.get("topicDescription", "").strip()
+                        note = row.get("topicNote", "").strip()
+
+                        entry = {
+                            "topicName": name,
+                            "topicDescription": description,
+                            "topicNote": note,
+                            "valid": True,
+                            "error": ""
+                        }
+
+                        if not name or not description:
+                            entry['valid'] = False
+                            entry['error'] = "Missing required fields"
+                        elif len(name) > 100:
+                            entry['valid'] = False
+                            entry['error'] = "Topic name is too long"
+                        elif len(description) > 500:
+                            entry['valid'] = False
+                            entry['error'] = "Topic description is too long"
+                        elif note and len(note) > 1000:
+                            entry['valid'] = False
+                            entry['error'] = "Topic note is too long"
+                        elif Topic.objects.filter(
+                            topicName=name,
+                            classrooms=classroom
+                        ).exists():
+                            entry['valid'] = False
+                            entry['error'] = "Topic name already exists in classroom"
+                        
+                        preview_data.append(entry)
+
+                    request.session['preview_topics'] = preview_data
+
+                except Exception as e:
+                    messages.error(request, f"Error reading CSV file: {str(e)}")
+                    return redirect(request.path)
     
-    return render(request, 'import_topics.html', {'classroomID': classroomID})
+    has_valid = any(row['valid'] for row in preview_data)
+    return render(request, 'import_topics.html', {
+        'form': form,
+        'preview_data': preview_data,
+        'has_valid': has_valid,
+        'classroomID': classroomID,
+        'classroom': classroom
+    })
+
+@login_required
+def start_exercise(request, classroomID, topicID, exerciseID):
+    """View for starting an exercise and showing the first question"""
+    if not is_student(request.user):
+        return redirect('index')
+    
+    exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
+    
+    # Get the first question ordered by the order field
+    first_question = exercise.questions.order_by('order').first()
+    
+    if not first_question:
+        messages.error(request, "This exercise has no questions.")
+        return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID)
+    
+    # Redirect to the first question
+    return redirect('question', 
+                   classroomID=classroomID, 
+                   topicID=topicID, 
+                   exerciseID=exerciseID, 
+                   questionID=first_question.questionID)
+
+@login_required
+def next_question(request, classroomID, topicID, exerciseID, questionID):
+    """View for going to the next question in an exercise"""
+    if not is_student(request.user):
+        return redirect('index')
+    
+    current_question = get_object_or_404(Question, questionID=questionID)
+    exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
+    
+    # Get the next question in order
+    next_question = Question.objects.filter(
+        exercises=exercise,
+        order__gt=current_question.order
+    ).order_by('order').first()
+    
+    if next_question:
+        return redirect('question', 
+                       classroomID=classroomID, 
+                       topicID=topicID, 
+                       exerciseID=exerciseID, 
+                       questionID=next_question.questionID)
+    else:
+        # If this is the last question, show completion message
+        return render(request, 'exercise_complete.html', {
+            'classroomID': classroomID,
+            'topicID': topicID,
+            'exerciseID': exerciseID,
+            'exercise': exercise
+        })

@@ -180,7 +180,8 @@ class Question(models.Model):
     is_saved = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Instructor, on_delete=models.CASCADE, related_name='questions', null=False, blank=False)
-    exercises = models.ManyToManyField(Exercise, related_name='questions') 
+    exercises = models.ManyToManyField(Exercise, related_name='questions')
+    order = models.IntegerField(default=0)  # Field to track question order within an exercise
 
     def __str__(self):
         return self.questionPrompt

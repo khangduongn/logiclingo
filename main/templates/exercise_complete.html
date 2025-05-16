@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+
+{% block title %}Exercise Complete{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card mb-4">
+        <div class="card-body text-center">
+            <h2 class="card-title mb-4">Congratulations!</h2>
+            <div class="alert alert-success mb-4">
+                <h4>You've completed all questions in "{{ exercise.exerciseName }}"!</h4>
+            </div>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'exercise' classroomID=classroomID topicID=topicID exerciseID=exerciseID %}" class="btn btn-primary">Back to Exercise</a>
+                <a href="{% url 'topic' classroomID=classroomID topicID=topicID %}" class="btn btn-secondary">Back to Topic</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
