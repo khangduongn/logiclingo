@@ -271,6 +271,28 @@ class ExerciseController:
             return exercise
         else:
             return None
+    
+    @staticmethod
+    def modifyExercise(exerciseID: int, exerciseName: str, exerciseDescription: str):
+        exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
+
+        exerciseName = exerciseName.strip()
+        exerciseDescription = exerciseDescription.strip()
+
+        if not (exerciseName and exerciseDescription):
+            raise ValueError("Exercise name and description cannot be empty.")
+        
+        exercise.exerciseName = exerciseName
+        exercise.exerciseDescription = exerciseDescription
+        exercise.save()
+        
+        return exercise
+    
+    @staticmethod
+    def deleteExercise(exerciseID: int):
+        exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
+        exercise.delete()
+        return True
 
     @staticmethod
     def importExercisesFromCSV(file, topic):
@@ -379,7 +401,13 @@ class QuestionController:
                 question.exercises.add(exercise)
             return question
         return None
-            
+    
+    @staticmethod
+    def deleteQuestion(questionID: int):
+        question = get_object_or_404(Question, questionID=questionID)
+        question.delete()
+        return True
+    
     @staticmethod
     def saveQuestion(questionType: str, questionPrompt: str, correctAnswer: str, instructor):
         """Creates a saved question without assigning it to an exercise"""

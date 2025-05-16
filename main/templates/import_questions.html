@@ -3,6 +3,15 @@
 {% block content %} 
 <div class="container mt-4">
     <h2 class="mb-4">Import Questions from CSV File</h2>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="card mb-4">
         <div class="card-header">
             CSV File Format

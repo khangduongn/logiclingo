@@ -6,8 +6,10 @@
     <h2>Delete Topic</h2>
     <div class="alert alert-danger">
         <h4>Are you sure you want to delete this topic?</h4>
-        <p><strong>Title:</strong> {{ topic.topicName }}</p>
-        <p><strong>Description:</strong> {{ topic.topicDescription }}</p>
+        <div class="mb-2">
+            <strong>Classroom:</strong> {{ classroom.className }}<br>
+            <strong>Topic:</strong> {{ topic.topicName }}
+        </div>
         <p class="mb-0">This action cannot be undone.</p>
     </div>
     

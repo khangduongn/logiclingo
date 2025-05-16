@@ -17,12 +17,25 @@
             </nav>
         </div>
         {% if request.user|is_instructor %}
+        <div class="btn-group">
             <a href="{% url 'modify_exercise' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-primary">
                 <i class="fas fa-edit"></i> Edit Exercise
             </a>
+            <a href="{% url 'delete_exercise' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Delete Exercise
+            </a>
+        </div>
         {% endif %}
     </div>
-
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
     <div class="card mb-4 shadow-sm">
         <div class="card-body">
             <h5 class="card-title">
@@ -74,12 +87,23 @@
                                 <p class="mb-1 text-muted">{{ question.questionPrompt|truncatechars:100 }}</p>
                                 <small class="text-muted">Type: {{ question.get_questionType_display }}</small>
                             </div>
-                            {% if request.user|is_instructor %}
+                            <div class="btn-group">
+                                {% if request.user|is_instructor %}
                                 <a href="{% url 'question' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID questionID=question.questionID %}" 
-                                   class="btn btn-outline-primary btn-sm">
+                                   class="btn btn-outline-primary">
                                     <i class="fas fa-eye"></i> View
                                 </a>
-                            {% endif %}
+                                <a href="{% url 'modify_question' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID questionID=question.questionID %}" 
+                                       class="btn btn-outline-secondary">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <a href="{% url 'delete_question' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID questionID=question.questionID %}" 
+                                       class="btn btn-outline-danger">
+                                    <i class="fas fa-edit"></i> Delete
+                                </a>
+                                {% endif %}
+                            </div>
+                            
                         </div>
                     {% endfor %}
                 </div>

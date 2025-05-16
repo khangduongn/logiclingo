@@ -385,6 +385,36 @@ def modify_question(request, classroomID, topicID, exerciseID, questionID):
     return render(request, 'modify_question.html', {'form': modifyQuestionForm, 'classroomID': classroomID, 'topicID': topicID, 'exerciseID': exerciseID, 'question': question})
 
 @login_required
+def delete_question(request, classroomID, topicID, exerciseID, questionID):
+    if is_student(request.user):
+        return redirect('index')
+    
+    classroom = get_object_or_404(Classroom, classroomID=classroomID)
+    topic = get_object_or_404(Topic, topicID=topicID)
+    exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
+    question = get_object_or_404(Question, questionID=questionID)
+    
+    if request.method == 'POST':
+        try:
+            QuestionController.deleteQuestion(questionID)
+            messages.success(request, 'Question deleted successfully!')
+            return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID)
+        except Exception as e:
+            messages.error(request, str(e))
+            return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID)
+    
+    return render(request, 'delete_question.html', {
+        'classroomID': classroomID,
+        'classroom': classroom,
+        'topicID': topicID,
+        'topic': topic,
+        'exerciseID': exerciseID,
+        'exercise': exercise,
+        'questionID': questionID,
+        'question': question
+    })
+
+@login_required
 def create_exercise(request, classroomID, topicID):
     if is_student(request.user):
         return redirect('index')
@@ -431,6 +461,33 @@ def modify_exercise(request, classroomID, topicID, exerciseID):
     return render(request, 'modify_exercise.html', {'form': modifyExerciseForm, 'classroomID': classroomID, 'topicID': topicID, 'exercise': exercise})
 
 @login_required
+def delete_exercise(request, classroomID, topicID, exerciseID):
+    if is_student(request.user):
+        return redirect('index')
+    
+    classroom = get_object_or_404(Classroom, classroomID=classroomID)
+    topic = get_object_or_404(Topic, topicID=topicID)
+    exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
+    
+    if request.method == 'POST':
+        try:
+            ExerciseController.deleteExercise(exerciseID)
+            messages.success(request, 'Exercise deleted successfully!')
+            return redirect('topic', classroomID=classroomID, topicID=topicID)
+        except Exception as e:
+            messages.error(request, str(e))
+            return redirect('topic', classroomID=classroomID, topicID=topicID)
+    
+    return render(request, 'delete_exercise.html', {
+        'classroomID': classroomID,
+        'classroom': classroom,
+        'topicID': topicID,
+        'topic': topic,
+        'exerciseID': exerciseID,
+        'exercise': exercise
+    })
+
+@login_required
 def edit_topic(request, classroomID, topicID):
     if is_student(request.user):
         return redirect('index')
@@ -472,6 +529,7 @@ def delete_topic(request, classroomID, topicID):
         return redirect('index')
     
     # Get the topic object
+    classroom = get_object_or_404(Classroom, classroomID=classroomID)
     topic = get_object_or_404(Topic, topicID=topicID)
     
     if request.method == 'POST':
@@ -486,6 +544,7 @@ def delete_topic(request, classroomID, topicID):
     
     return render(request, 'delete_topic.html', {
         'classroomID': classroomID,
+        'classroom': classroom,
         'topicID': topicID,
         'topic': topic  # Pass the topic object to the template
     })

@@ -26,7 +26,13 @@
             </div>
         {% endif %}
     </div>
-
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
     <div class="card mb-4 shadow-sm">
         <div class="card-body">
             <h5 class="card-title">
@@ -80,6 +86,10 @@
                                     <a href="{% url 'modify_exercise' classroomID=classroomID topicID=topic.topicID exerciseID=exercise.exerciseID %}" 
                                        class="btn btn-outline-secondary">
                                         <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <a href="{% url 'delete_exercise' classroomID=classroomID topicID=topic.topicID exerciseID=exercise.exerciseID %}" 
+                                       class="btn btn-outline-danger">
+                                        <i class="fas fa-edit"></i> Delete
                                     </a>
                                 {% endif %}
                             </div>
