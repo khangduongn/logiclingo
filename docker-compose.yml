@@ -19,7 +19,7 @@ services:
       DB_NAME: logiclingo
       DB_USER: root
       DB_PASSWORD: logiclingo_root
-      DB_HOST: localhost
+      DB_HOST: db
       DB_PORT: 5432
     depends_on:
       - db
