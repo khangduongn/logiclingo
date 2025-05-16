@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: logiclingo
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: logiclingo_root
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+  web:
+    build: .
+    command: gunicorn logiclingo.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      DB_NAME: logiclingo
+      DB_USER: root
+      DB_PASSWORD: logiclingo_root
+      DB_HOST: localhost
+      DB_PORT: 5432
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
