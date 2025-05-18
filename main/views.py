@@ -16,18 +16,15 @@ def is_in_classroom(user, classroom):
 
 @login_required
 def index(request):
-
     user = request.user
 
     if not is_student(user): 
         return render(request, 'instructor.html', {'instructor': user.instructor})
-
     else:
         return render(request, 'student.html', {'student': user.student})
 
 @login_required
 def create_classroom(request):
-
     if is_student(request.user):
         return redirect('index')
     
@@ -46,10 +43,8 @@ def create_classroom(request):
 
 @login_required
 def classroom(request, id):
-
     classroom = get_object_or_404(Classroom, classroomID=id)
 
-    #if the user is in the classroom, then let them see the classroom
     if is_in_classroom(request.user, classroom):
         topics = classroom.topics.all()
         return render(request, 'classroom.html', {
@@ -60,7 +55,6 @@ def classroom(request, id):
         return redirect('index')
 
 def create_student(request):
-
     createStudentForm = StudentForm()
 
     if request.method == 'POST':
@@ -70,13 +64,11 @@ def create_student(request):
             newStudent.set_password(createStudentForm.cleaned_data['password'])
             newStudent.save()
             login(request, newStudent)
-
             return redirect('index')
 
     return render(request, 'create_student.html', {'form': createStudentForm})
 
 def create_instructor(request):
-
     createInstructorForm = InstructorForm()
 
     if request.method == 'POST':
@@ -86,14 +78,12 @@ def create_instructor(request):
             newInstructor.set_password(createInstructorForm.cleaned_data['password'])
             newInstructor.save()
             login(request, newInstructor)
-
             return redirect('index')
 
     return render(request, 'create_instructor.html', {'form': createInstructorForm})
 
 @login_required
 def classroom_settings(request, id):
-
     classroom = get_object_or_404(Classroom, classroomID=id)
 
     if is_student(request.user) or not is_in_classroom(request.user, classroom):
@@ -105,19 +95,16 @@ def classroom_settings(request, id):
         form_type = request.POST.get('form_type', '')
         
         if form_type == 'access_settings':
-            # Handle classroom access settings
             open_value = request.POST.get('open') == 'true'
             classroom.open = open_value
             classroom.save()
             message = 'Classroom access settings updated successfully!'
             
         elif form_type == 'invite_students':
-            # Handle student invitations
             student_emails = request.POST.get('student_emails')
             if student_emails:
                 invalid_emails = ClassroomController.inviteUsers(student_emails, id, True)
                 
-                # Add emails to InvitedStudent model
                 emails = [email.strip() for email in student_emails.split(',')]
                 for email in emails:
                     if email and email not in invalid_emails:
@@ -129,7 +116,6 @@ def classroom_settings(request, id):
                     message = "Invitations sent successfully!"
         
         elif form_type == 'invite_instructors':
-            # Handle instructor invitations
             instructor_emails = request.POST.get('instructor_emails')
             if instructor_emails:
                 invalid_emails = ClassroomController.inviteUsers(instructor_emails, id, False)
@@ -138,7 +124,6 @@ def classroom_settings(request, id):
                 else:
                     message = "Invitations sent successfully!"
     
-    # Get list of invited students
     invited_students = InvitedStudent.objects.filter(classroom=classroom).order_by('-created_at')
     
     return render(request, 'classroom_settings.html', {
@@ -204,7 +189,6 @@ def join_classroom(request):
     
     return render(request, 'join_classroom.html', {'form': form})
 
-
 @login_required
 def confirm_join_classroom(request):
     classroom_code = request.GET.get('classroom_code')
@@ -236,7 +220,6 @@ def confirm_join_classroom(request):
 
 @login_required
 def create_topic(request, classroomID):
-
     if is_student(request.user):
         return redirect('index')
     
@@ -257,7 +240,6 @@ def create_topic(request, classroomID):
 
     return render(request, 'create_topic.html', {'form': form, 'classroomID': classroomID})
 
-
 @login_required
 def topic(request, classroomID, topicID):
     topic = get_object_or_404(Topic, topicID=topicID)
@@ -269,14 +251,11 @@ def topic(request, classroomID, topicID):
     
 @login_required
 def add_existing_topics(request, classroomID):
-
     if is_student(request.user):
         return redirect('index')
 
     classroom = get_object_or_404(Classroom, classroomID=classroomID)
-
-    # get all topics created by the instructor that are not in this classroom
-    available_topics = Topic.objects.filter(created_by=request.user.instructor).exclude(classrooms=classroom) # exclude topics that have already been added to the classroom
+    available_topics = Topic.objects.filter(created_by=request.user.instructor).exclude(classrooms=classroom)
 
     form = AddExistingTopicsForm()
     form.fields['topics'].queryset = available_topics
@@ -290,7 +269,6 @@ def add_existing_topics(request, classroomID):
                 topic.classrooms.add(classroom)
             return redirect('classroom', id=classroomID)
         
-
     return render(request, 'add_existing_topics.html', {
         'form': form,
         'classroom': classroom,
@@ -298,7 +276,6 @@ def add_existing_topics(request, classroomID):
     })
 
 def create_question(request, classroomID, topicID, exerciseID):
-    # If the user is a student, redirect them back
     if is_student(request.user):
         return redirect('index')
     
@@ -319,14 +296,15 @@ def create_question(request, classroomID, topicID, exerciseID):
 
     return render(request, 'create_question.html', {'form': form, 'classroomID': classroomID, 'topicID': topicID, 'exerciseID': exerciseID})
 
-
 @login_required
 def question(request, classroomID, topicID, exerciseID, questionID):
-    """View for displaying a question and handling answers"""
     question = get_object_or_404(Question, questionID=questionID)
     exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
 
-    # Student view
+    if not question.exercises.filter(exerciseID=exerciseID).exists():
+        messages.error(request, "This question does not belong to this exercise.")
+        return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID)
+
     if is_student(request.user):
         form = AnswerForm()
         if request.method == 'POST':
@@ -343,13 +321,15 @@ def question(request, classroomID, topicID, exerciseID, questionID):
                     answer=answer,
                     correct=correct
                 )
+                
+                # Return the same page with the answer result
                 return render(request, 'question_student_view.html', {
-                    'question': question, 
-                    'form': form, 
-                    'answer_result': answer_result, 
-                    'classroomID': classroomID, 
-                    'topicID': topicID, 
-                    'exerciseID': exerciseID
+                    'question': question,
+                    'form': form,
+                    'classroomID': classroomID,
+                    'topicID': topicID,
+                    'exerciseID': exerciseID,
+                    'answer_result': answer_result
                 })
        
         return render(request, 'question_student_view.html', {
@@ -360,18 +340,15 @@ def question(request, classroomID, topicID, exerciseID, questionID):
             'exerciseID': exerciseID
         })
 
-    # Instructor view
     return render(request, 'question.html', {
         'question': question, 
         'classroomID': classroomID, 
         'topicID': topicID, 
         'exerciseID': exerciseID
     })
-    
 
 @login_required
 def modify_question(request, classroomID, topicID, exerciseID, questionID):
-
     if is_student(request.user): 
         return redirect('index')
     question = get_object_or_404(Question, questionID=questionID)
@@ -395,7 +372,6 @@ def create_exercise(request, classroomID, topicID):
     if request.method == 'POST':
         form = ExerciseForm(request.POST)
         if form.is_valid():
-            
             exerciseName = form.cleaned_data['exerciseName']
             exerciseDescription = form.cleaned_data['exerciseDescription']
 
@@ -407,17 +383,13 @@ def create_exercise(request, classroomID, topicID):
     
     return render(request, 'create_exercise.html', {'form': form, 'classroomID': classroomID, 'topicID': topicID})
 
-
 @login_required
 def exercise(request, classroomID, topicID, exerciseID):
-
     exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
     return render(request, 'exercise.html', {'exercise': exercise, 'classroomID': classroomID, 'topicID': topicID})
-    
 
 @login_required
 def modify_exercise(request, classroomID, topicID, exerciseID):
-
     if is_student(request.user): 
         return redirect('index')
     exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
@@ -438,12 +410,10 @@ def edit_topic(request, classroomID, topicID):
     if request.method == 'POST':
         form = TopicForm(request.POST)
         if form.is_valid():
-            # Get form data
             topic_name = form.cleaned_data['topicName']
             topic_description = form.cleaned_data['topicDescription']
             topic_note = form.cleaned_data['topicNote']
             
-            # Validate and update topic using TopicController
             try:
                 TopicController.modifyTopic(topicID, topic_name, topic_description, topic_note)
                 messages.success(request, 'Topic updated successfully!')
@@ -456,7 +426,6 @@ def edit_topic(request, classroomID, topicID):
                     'topicID': topicID
                 })
     else:
-        # Get initial topic data
         topic = get_object_or_404(Topic, topicID=topicID)
         form = TopicForm(instance=topic)
     
@@ -471,11 +440,9 @@ def delete_topic(request, classroomID, topicID):
     if is_student(request.user):
         return redirect('index')
     
-    # Get the topic object
     topic = get_object_or_404(Topic, topicID=topicID)
     
     if request.method == 'POST':
-        # Delete topic using TopicController
         try:
             TopicController.deleteTopic(topicID)
             messages.success(request, 'Topic deleted successfully!')
@@ -487,19 +454,16 @@ def delete_topic(request, classroomID, topicID):
     return render(request, 'delete_topic.html', {
         'classroomID': classroomID,
         'topicID': topicID,
-        'topic': topic  # Pass the topic object to the template
+        'topic': topic
     })
 
 @login_required
 def add_existing_exercises(request, classroomID, topicID):
-
     if is_student(request.user):
         return redirect('index')
 
     topic = get_object_or_404(Topic, topicID=topicID)
-
-    # get all exercises created by the instructor that are not in this topic
-    available_exercises = Exercise.objects.filter(created_by=request.user.instructor).exclude(topics=topic) # exclude exercises that have already been added to the topic
+    available_exercises = Exercise.objects.filter(created_by=request.user.instructor).exclude(topics=topic)
 
     form = AddExistingExercisesForm()
     form.fields['exercises'].queryset = available_exercises
@@ -511,10 +475,8 @@ def add_existing_exercises(request, classroomID, topicID):
         if form.is_valid():
             for exercise in form.cleaned_data['exercises']:
                 exercise.topics.add(topic)
-                # exercise.save()
             return redirect('topic', classroomID=classroomID, topicID=topicID)
         
-
     return render(request, 'add_existing_exercises.html', {
         'form': form,
         'topic': topic,
@@ -536,7 +498,7 @@ def import_questions(request, classroomID, topicID, exerciseID):
     if request.method == 'POST':
         if 'confirm' in request.POST:
             preview_data = request.session.get('preview_questions', [])
-            created = 0;
+            created = 0
             for row in preview_data:
                 if row['valid']:
                     QuestionController.createNewQuestion(
@@ -551,10 +513,9 @@ def import_questions(request, classroomID, topicID, exerciseID):
             request.session.pop('preview_questions', None)
             return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID)
         else:
-            form = ImportQuestionForm(request.POST, request.FILES);
+            form = ImportQuestionForm(request.POST, request.FILES)
             if form.is_valid():
                 file = request.FILES['csv_file']
-                print(f"Uploaded file name: {file.name}")
                 try:
                     csv_file = file.read().decode('utf-8')
                     io_string = io.StringIO(csv_file)
@@ -593,7 +554,6 @@ def import_questions(request, classroomID, topicID, exerciseID):
                     request.session['preview_questions'] = preview_data
 
                 except Exception as e:
-                    print(f"Error: {e}")
                     messages.error(request, "Error reading CSV file")
                     return redirect(request.path)
     has_valid = any(row['valid'] for row in preview_data)
@@ -608,10 +568,9 @@ def import_questions(request, classroomID, topicID, exerciseID):
 
 @login_required
 def import_exercises(request, classroomID, topicID):
-    """View for importing exercises from a CSV file"""
     if is_student(request.user):
         return redirect('index')
-    
+
     topic = get_object_or_404(Topic, topicID=topicID)
     form = ImportExerciseForm() 
     preview_data = None
@@ -625,13 +584,12 @@ def import_exercises(request, classroomID, topicID):
                 messages.success(request, f'Successfully imported {count} exercises!')
             else:
                 messages.warning(request, 'No valid exercises were found to import.')
-            # Clear session data
             if 'exercise_preview_data' in request.session:
                 del request.session['exercise_preview_data']
             return redirect('topic', classroomID=classroomID, topicID=topicID)
             
         elif 'csv_file' in request.FILES:
-            form = ImportExerciseForm(request.POST, request.FILES)  # Instantiate with POST data
+            form = ImportExerciseForm(request.POST, request.FILES)
             if form.is_valid():
                 csv_file = request.FILES['csv_file']
                 if not csv_file.name.endswith('.csv'):
@@ -650,7 +608,6 @@ def import_exercises(request, classroomID, topicID):
     })
 
 def save_question(request, classroomID):
-    """View for saving a question without associating it with an exercise"""
     if is_student(request.user):
         return redirect('index')
     
@@ -683,7 +640,6 @@ def save_question(request, classroomID):
 
 @login_required
 def saved_questions(request, classroomID):
-    """View for displaying all saved questions"""
     if is_student(request.user):
         return redirect('index')
     
@@ -698,14 +654,11 @@ def saved_questions(request, classroomID):
 
 @login_required
 def add_existing_questions(request, classroomID, topicID, exerciseID):
-
     if is_student(request.user):
         return redirect('index')
 
     exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
-
-    # get all questions created by the instructor that are not in this exercise
-    available_questions = Question.objects.filter(created_by=request.user.instructor).exclude(exercises=exercise) # exclude questions that have already been added to the exercise
+    available_questions = Question.objects.filter(created_by=request.user.instructor).exclude(exercises=exercise)
 
     form = AddExistingQuestionsForm()
     form.fields['questions'].queryset = available_questions
@@ -719,7 +672,6 @@ def add_existing_questions(request, classroomID, topicID, exerciseID):
                 question.exercises.add(exercise)
             return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID)
         
-
     return render(request, 'add_existing_questions.html', {
         'form': form,
         'exercise': exercise,
@@ -730,7 +682,6 @@ def add_existing_questions(request, classroomID, topicID, exerciseID):
 
 @login_required
 def add_question_to_exercise(request, classroomID, questionID):
-    """View for adding a saved question to an exercise"""
     if is_student(request.user):
         return redirect('index')
     
@@ -742,7 +693,6 @@ def add_question_to_exercise(request, classroomID, questionID):
         if form.is_valid():
             exercise = form.cleaned_data['exercise']
             
-            # Add the question to the selected exercise
             new_question = QuestionController.addQuestionToExercise(questionID, exercise.exerciseID)
             
             if new_question:
@@ -759,7 +709,6 @@ def add_question_to_exercise(request, classroomID, questionID):
 
 @login_required
 def import_topics(request, classroomID):
-    """View for importing topics from a CSV file following UC-048 sequence diagram"""
     if is_student(request.user):
         return redirect('index')
     
@@ -774,7 +723,6 @@ def import_topics(request, classroomID):
     
     if request.method == 'POST':
         if 'confirm' in request.POST:
-            # Handle the actual import after preview
             preview_data = request.session.get('preview_topics', [])
             created = 0
             for row in preview_data:
@@ -850,20 +798,17 @@ def import_topics(request, classroomID):
 
 @login_required
 def start_exercise(request, classroomID, topicID, exerciseID):
-    """View for starting an exercise and showing the first question"""
     if not is_student(request.user):
         return redirect('index')
     
     exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
     
-    # Get the first question ordered by the order field
     first_question = exercise.questions.order_by('order').first()
     
     if not first_question:
         messages.error(request, "This exercise has no questions.")
         return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID)
     
-    # Redirect to the first question
     return redirect('question', 
                    classroomID=classroomID, 
                    topicID=topicID, 
@@ -872,27 +817,32 @@ def start_exercise(request, classroomID, topicID, exerciseID):
 
 @login_required
 def next_question(request, classroomID, topicID, exerciseID, questionID):
-    """View for going to the next question in an exercise"""
     if not is_student(request.user):
         return redirect('index')
     
     current_question = get_object_or_404(Question, questionID=questionID)
     exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
     
-    # Get the next question in order
-    next_question = Question.objects.filter(
-        exercises=exercise,
-        order__gt=current_question.order
-    ).order_by('order').first()
+    # Get all questions in the exercise ordered by their order field
+    exercise_questions = exercise.questions.all().order_by('order')
     
-    if next_question:
+    # Find the current question's index
+    current_index = None
+    for i, q in enumerate(exercise_questions):
+        if q.questionID == current_question.questionID:
+            current_index = i
+            break
+    
+    # If we found the current question and there's a next question
+    if current_index is not None and current_index + 1 < len(exercise_questions):
+        next_question = exercise_questions[current_index + 1]
         return redirect('question', 
                        classroomID=classroomID, 
                        topicID=topicID, 
                        exerciseID=exerciseID, 
                        questionID=next_question.questionID)
     else:
-        # If this is the last question, show completion message
+        # If we're at the last question, show the completion page
         return render(request, 'exercise_complete.html', {
             'classroomID': classroomID,
             'topicID': topicID,
