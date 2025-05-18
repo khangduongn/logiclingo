@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load logical_symbols %}
+
+{% block title %}Answer Question{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Answer Question</h2>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">{{ question.questionPrompt }}</h5>
+            <p class="card-text">
+                <strong>Type:</strong> {{ question.get_questionType_display }}
+            </p>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="{{ form.answer.id_for_label }}" class="form-label">Your Answer:</label>
+            {% include 'includes/logical_symbols_input.html' with field=form.answer %}
+            {% if form.answer.errors %}
+                <div class="alert alert-danger">
+                    {{ form.answer.errors }}
+                </div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Answer</button>
+    </form>
+</div>
+{% endblock %} 
