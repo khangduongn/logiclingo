@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:14
-    environment:
+    environment: #make sure these database credentials match what you defined below
       POSTGRES_DB: logiclingo
       POSTGRES_USER: root
       POSTGRES_PASSWORD: logiclingo_root
