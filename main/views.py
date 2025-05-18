@@ -322,28 +322,15 @@ def question(request, classroomID, topicID, exerciseID, questionID):
                     correct=correct
                 )
                 
-                exercise_questions = exercise.questions.all().order_by('order')
-                
-                current_index = None
-                for i, q in enumerate(exercise_questions):
-                    if q.questionID == question.questionID:
-                        current_index = i
-                        break
-                
-                if current_index is not None and current_index + 1 < len(exercise_questions):
-                    next_question = exercise_questions[current_index + 1]
-                    return redirect('question', 
-                                  classroomID=classroomID, 
-                                  topicID=topicID, 
-                                  exerciseID=exerciseID, 
-                                  questionID=next_question.questionID)
-                else:
-                    return render(request, 'exercise_complete.html', {
-                        'classroomID': classroomID,
-                        'topicID': topicID,
-                        'exerciseID': exerciseID,
-                        'exercise': exercise
-                    })
+                # Return the same page with the answer result
+                return render(request, 'question_student_view.html', {
+                    'question': question,
+                    'form': form,
+                    'classroomID': classroomID,
+                    'topicID': topicID,
+                    'exerciseID': exerciseID,
+                    'answer_result': answer_result
+                })
        
         return render(request, 'question_student_view.html', {
             'question': question, 
@@ -836,18 +823,26 @@ def next_question(request, classroomID, topicID, exerciseID, questionID):
     current_question = get_object_or_404(Question, questionID=questionID)
     exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
     
-    next_question = Question.objects.filter(
-        exercises=exercise,
-        order__gt=current_question.order
-    ).order_by('order').first()
+    # Get all questions in the exercise ordered by their order field
+    exercise_questions = exercise.questions.all().order_by('order')
     
-    if next_question:
+    # Find the current question's index
+    current_index = None
+    for i, q in enumerate(exercise_questions):
+        if q.questionID == current_question.questionID:
+            current_index = i
+            break
+    
+    # If we found the current question and there's a next question
+    if current_index is not None and current_index + 1 < len(exercise_questions):
+        next_question = exercise_questions[current_index + 1]
         return redirect('question', 
                        classroomID=classroomID, 
                        topicID=topicID, 
                        exerciseID=exerciseID, 
                        questionID=next_question.questionID)
     else:
+        # If we're at the last question, show the completion page
         return render(request, 'exercise_complete.html', {
             'classroomID': classroomID,
             'topicID': topicID,
