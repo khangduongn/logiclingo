@@ -3,8 +3,13 @@ services:
     image: postgres:14
     environment: #make sure these database credentials match what you defined below
       POSTGRES_DB: logiclingo
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: logiclingo_root
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: logiclingo_postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data/
 
@@ -12,21 +17,22 @@ services:
     build: .
     command: sh -c "
       python manage.py migrate &&
-      gunicorn logiclingo.wsgi:application --bind 0.0.0.0:80 --workers 3
-      "
+      python manage.py collectstatic --noinput &&
+      gunicorn logiclingo.wsgi:application --bind 0.0.0.0:80 --workers 3"
     volumes:
       - .:/app
     ports:
       - "80:80"
     environment: #modify these environment variables to fit your needs
       DB_NAME: logiclingo
-      DB_USER: root
-      DB_PASSWORD: logiclingo_root
-      DB_HOST: db
+      DB_USER: postgres
+      DB_PASSWORD: logiclingo_postgres
+      DB_HOST: localhost
       DB_PORT: 5432
       SECRET_KEY: EFWFEWfehEvb&361^1#@93110 
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
