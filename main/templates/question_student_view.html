@@ -25,6 +25,6 @@
         <a href="{% url 'next_question' classroomID=classroomID topicID=topicID exerciseID=exerciseID questionID=question.questionID %}" class="btn btn-success">Go to Next Question</a>
     {% endif %}
 
-    <a href="{% url 'exercise' classroomID=classroomID topicID=topicID exerciseID=exerciseID %}" class="btn btn-light" role="button">Back to Exercise</a>
+    <a href="{% url 'quit_exercise' classroomID=classroomID topicID=topicID exerciseID=exerciseID questionID=question.questionID%}" class="btn btn-light" role="button">Quit Exercise</a>
 </div>
 {% endblock content %} 

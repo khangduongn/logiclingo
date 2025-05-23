@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Delete Question{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Delete Question</h2>
+    <div class="alert alert-danger">
+        <h4>Are you sure you want to delete this Question?</h4>
+        <p><strong>Type:</strong> {{ question.get_questionType_display }}</p>
+        <p><strong>Question:</strong> {{ question.questionPrompt }}</p>
+        <p><strong>Correct Answer:</strong> {{ question.correctAnswer }}</p>
+        <p class="mb-0">This question will be deleted from all exercises. This action cannot be undone.</p>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete Question</button>
+        <a href="{% url 'question' classroomID=classroomID topicID=topicID exerciseID=exerciseID questionID=question.questionID %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

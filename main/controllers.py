@@ -350,6 +350,12 @@ class ExerciseController:
                 count += 1
         return count
         
+    @staticmethod
+    def deleteExercise(exerciseID: int):
+        exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
+        exercise.delete()
+        return True
+
 class QuestionController:
 
     @staticmethod
@@ -417,3 +423,11 @@ class QuestionController:
                 )
                 
         return new_question
+    
+    @staticmethod
+    def deleteQuestion(questionID: int):
+        question = get_object_or_404(Question, questionID=questionID)
+        for answer in question.answers.all():
+            answer.delete()
+        question.delete()
+        return True

@@ -29,8 +29,14 @@
             <p class="card-text">{{ question.correctAnswer }}</p>
         </div>
     </div>
-
-    <a href="{% url 'modify_question' classroomID=classroomID topicID=topicID exerciseID=exerciseID questionID=question.questionID %}" class="btn btn-primary" role="button">Edit</a>
+    <div class="btn-group">
+        <a href="{% url 'modify_question' classroomID=classroomID topicID=topicID exerciseID=exerciseID questionID=question.questionID %}" class="btn btn-primary">
+            <i class="fas fa-trash"></i> Edit Question
+        </a>
+        <a href="{% url 'delete_question' classroomID=classroomID topicID=topicID exerciseID=exerciseID questionID=question.questionID %}" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Delete Question
+        </a>
+    </div>
     <a href="{% url 'exercise' classroomID=classroomID topicID=topicID exerciseID=exerciseID %}" class="btn btn-light" role="button">Back to Exercise</a>
 </div>
 {% endblock content %} 

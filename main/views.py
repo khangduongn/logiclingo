@@ -849,3 +849,64 @@ def next_question(request, classroomID, topicID, exerciseID, questionID):
             'exerciseID': exerciseID,
             'exercise': exercise
         })
+
+@login_required
+def delete_exercise(request, classroomID, topicID, exerciseID):
+    if is_student(request.user):
+        return redirect('index')
+    
+    exercise = get_object_or_404(Exercise, exerciseID=exerciseID)
+    
+    if request.method == 'POST':
+        try:
+            ExerciseController.deleteExercise(exerciseID)
+            messages.success(request, 'Exercise deleted successfully!')
+            return redirect('topic', classroomID=classroomID, topicID=topicID)
+        except Exception as e:
+            messages.error(request, str(e))
+            return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID)
+    
+    return render(request, 'delete_exercise.html', {
+        'classroomID': classroomID,
+        'topicID': topicID,
+        'exerciseID': exerciseID,
+        'exercise' : exercise
+    })
+
+@login_required
+def delete_question(request, classroomID, topicID, exerciseID, questionID):
+    if is_student(request.user):
+        return redirect('index')
+    
+    question = get_object_or_404(Question, questionID=questionID)
+    
+    if request.method == 'POST':
+        try:
+            QuestionController.deleteQuestion(questionID)
+            messages.success(request, 'Question deleted successfully!')
+            return redirect('exercise', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID)
+        except Exception as e:
+            messages.error(request, str(e))
+            return redirect('question', classroomID=classroomID, topicID=topicID, exerciseID=exerciseID, questionID=questionID)
+    
+    return render(request, 'delete_question.html', {
+        'classroomID': classroomID,
+        'topicID': topicID,
+        'exerciseID': exerciseID,
+        'questionID' : questionID,
+        'question' : question
+    })
+
+@login_required
+def quit_exercise(request, classroomID, topicID, exerciseID, questionID):
+    if not is_student(request.user):
+        return redirect('index')
+    
+    question = get_object_or_404(Question, questionID=questionID)
+    return render(request, 'quit_exercise.html', {
+        'classroomID': classroomID,
+        'topicID': topicID,
+        'exerciseID': exerciseID,
+        'questionID' : questionID,
+        'question' : question
+    })
