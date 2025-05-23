@@ -1,0 +1,9 @@
+.character-counter {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    transition: color 0.2s ease;
+}
+
+.character-counter.text-danger {
+    font-weight: 500;
+} 
