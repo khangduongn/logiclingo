@@ -18,6 +18,7 @@
             {{ form.as_p }}
             <button type="submit" class="btn btn-primary">Submit Answer</button>
         </form>
+        <a href="{% url 'quit_exercise' classroomID=classroomID topicID=topicID exerciseID=exerciseID questionID=question.questionID%}" class="btn btn-danger" role="button">Quit Exercise</a>
     {% else %}
         <div class="alert {% if answer_result == 'correct' %}alert-success{% else %}alert-danger{% endif %} mb-4">
             Your answer was {{ answer_result }}!
@@ -25,6 +26,6 @@
         <a href="{% url 'next_question' classroomID=classroomID topicID=topicID exerciseID=exerciseID questionID=question.questionID %}" class="btn btn-success">Go to Next Question</a>
     {% endif %}
 
-    <a href="{% url 'quit_exercise' classroomID=classroomID topicID=topicID exerciseID=exerciseID questionID=question.questionID%}" class="btn btn-danger" role="button">Quit Exercise</a>
+    
 </div>
 {% endblock content %} 
