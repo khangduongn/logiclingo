@@ -1,0 +1,15 @@
+:80 {
+    # Enable compression
+    encode gzip
+
+    # Serve static files
+    handle /static/* {
+        root * /app/staticfiles
+        file_server
+    }
+
+    # Proxy all other requests to Gunicorn
+    handle {
+        reverse_proxy gunicorn:8000
+    }
+} 
