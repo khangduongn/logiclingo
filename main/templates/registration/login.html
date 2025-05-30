@@ -3,11 +3,48 @@
 
 {% block content %}
 
-<h1>Login</h1>
-<form method="post">
+<div class="logic-lingo-login">
+  <div class="title-login">Login</div>
+
+  <form method="post" class="form-login">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Login</button>
-    <p>Don't have an account? Create a student account <a href="/create_student">here</a> or an instructor account <a href="/create_instructor">here</a></p>
-</form>
+    
+    <div class="input-field-login-username">
+      <label class="label-username" for="id_username">Username</label>
+      <div class="input-username">
+        <input type="text" id="id_username" name="username" placeholder="Username" required>
+      </div>
+    </div>
+    
+    <div class="input-field-login-password">
+      <label class="label-password" for="id_password">Password</label>
+      <div class="input-password">
+        <input type="password" id="id_password" name="password" placeholder="Password" required>
+      </div>
+    </div>
+    
+    <div class="button-login">
+        <button type="submit" class="button">Login</button>
+    </div>
+    
+    <div class="text-link-login">
+      <div class="text-link-login2">
+        <span>
+          <span class="text-link-2-span">Don’t have an account?</span>
+          <br/>
+          <span class="text-link-2-span3">
+            <a href="/create_student">Create a Student Account</a><br />
+          </span>
+          <span class="text-link-2-span2">or</span>
+          <br/>
+          <span class="text-link-2-span4">
+            <a href="/create_instructor">Create an Instructor Account</a>
+          </span>
+        </span>
+      </div>
+    </div>
+    
+  </form>
+</div>
+
 {% endblock %}
