@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Quit Exercise{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Quit Exercise</h2>
+    <div class="alert alert-danger">
+        <h4>Are you sure you want to quit this Exercise?</h4>
+        <p class="mb-0">Your progress will not be saved</p>
+    </div>
+    
+    <a href="{% url 'exercise' classroomID=classroomID topicID=topicID exerciseID=exerciseID %}" class="btn btn-secondary">Yes</a>
+    <a href="{% url 'question' classroomID=classroomID topicID=topicID exerciseID=exerciseID questionID=question.questionID %}" class="btn btn-secondary">No</a>
+</div>
+{% endblock %}

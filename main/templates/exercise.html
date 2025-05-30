@@ -17,9 +17,14 @@
             </nav>
         </div>
         {% if request.user|is_instructor %}
+        <div class="btn-group">
             <a href="{% url 'modify_exercise' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-primary">
-                <i class="fas fa-edit"></i> Edit Exercise
+                <i class="fas fa-edit"></i>  Edit Exercise
             </a>
+            <a href="{% url 'delete_exercise' classroomID=classroomID topicID=topicID exerciseID=exercise.exerciseID %}" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Delete Exercise
+            </a>
+        </div>
         {% endif %}
     </div>
 
